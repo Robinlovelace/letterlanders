@@ -8,7 +8,8 @@ node_modules/
 .DS_Store
 
 # Assets (if generated)
-# assets/
+assets/sounds/
+
 
 # IDEs
 .vscode/
