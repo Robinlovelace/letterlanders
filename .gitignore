@@ -1,0 +1,15 @@
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock
+
+# Node
+node_modules/
+.DS_Store
+
+# Assets (if generated)
+# assets/
+
+# IDEs
+.vscode/
+.idea/
