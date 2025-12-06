@@ -87,6 +87,7 @@
 
     .settings-btn {
         margin-top: 2rem;
+        margin-bottom: 2rem; /* Added for spacing from bottom */
         width: auto;
         padding: 1rem 2rem;
         font-size: 1.2rem;
