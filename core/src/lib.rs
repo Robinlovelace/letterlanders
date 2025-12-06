@@ -1,7 +1,7 @@
 pub mod game;
-pub mod state;
 pub mod settings;
+pub mod state;
 
 pub use game::GameEngine;
-pub use state::{GameStatus, GameVariant, SoundEvent, SessionState};
 pub use settings::GameSettings;
+pub use state::{GameStatus, GameVariant, SessionState, SoundEvent};

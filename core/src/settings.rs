@@ -1,8 +1,8 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::default::Default;
 use std::fs;
 use std::path::Path;
-use anyhow::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InputMethod {
@@ -15,7 +15,7 @@ pub enum InputMethod {
 pub struct GameSettings {
     #[serde(default = "default_feedback_duration")]
     pub feedback_duration_seconds: u64,
-    
+
     #[serde(default = "default_show_target")]
     pub show_target_visual: bool,
 

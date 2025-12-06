@@ -1,13 +1,12 @@
+use letterlanders_core::settings::InputMethod;
+use letterlanders_core::{GameEngine, GameStatus};
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Alignment},
-    style::{Color, Style, Modifier},
-    text::{Span, Line},
-        widgets::{Block, Borders, Paragraph},
-        Frame,
-    };
-    use letterlanders_core::{GameEngine, GameStatus};
-    use letterlanders_core::settings::InputMethod;
-    
+    layout::{Alignment, Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
 
 pub fn draw(f: &mut Frame, engine: &GameEngine) {
     let chunks = Layout::default()
@@ -51,14 +50,26 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 InputMethod::ArrowSelection => "Arrow Selection",
                 InputMethod::Hybrid => "Hybrid (Arrows + Type)",
             };
-            
+
             let mut settings_text = vec![
                 Line::from("SETTINGS"),
                 Line::from(""),
-                Line::from(format!("1. Show Target Visual: {} (Press '1' to toggle)", s.show_target_visual)),
-                Line::from(format!("2. Feedback Duration: {}s (Press '2' to cycle)", s.feedback_duration_seconds)),
-                Line::from(format!("3. Input Method: {} (Press '3' to toggle)", input_method_str)),
-                Line::from(format!("4. Start Level: {} (Press '4' to cycle 1-4)", s.start_level)),
+                Line::from(format!(
+                    "1. Show Target Visual: {} (Press '1' to toggle)",
+                    s.show_target_visual
+                )),
+                Line::from(format!(
+                    "2. Feedback Duration: {}s (Press '2' to cycle)",
+                    s.feedback_duration_seconds
+                )),
+                Line::from(format!(
+                    "3. Input Method: {} (Press '3' to toggle)",
+                    input_method_str
+                )),
+                Line::from(format!(
+                    "4. Start Level: {} (Press '4' to cycle 1-4)",
+                    s.start_level
+                )),
                 Line::from("5. Export Settings (Press '5' - shares config)"),
                 Line::from("6. Import Settings (Press '6' - note: not backwards compatible)"),
                 Line::from(""),
@@ -69,7 +80,9 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 settings_text.push(Line::from(""));
                 settings_text.push(Line::from(Span::styled(
                     format!("Msg: {}", msg),
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 )));
             }
 
@@ -80,32 +93,47 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
         }
         GameStatus::Playing => {
             if let Some(session) = &engine.session {
-                let mut content = vec![
-                    Line::from(format!("Level {}/{}", session.current_level, if session.current_level > 3 { "BOSS" } else { "3" })),
-                ];
-                
+                let mut content = vec![Line::from(format!(
+                    "Level {}/{}",
+                    session.current_level,
+                    if session.current_level > 3 {
+                        "BOSS"
+                    } else {
+                        "3"
+                    }
+                ))];
+
                 if let Some(limit) = session.level_time_limit {
-                     let remaining = limit.saturating_sub(session.level_elapsed_time);
-                     let style = if remaining <= 5 { Style::default().fg(Color::Red).add_modifier(Modifier::BOLD) } else { Style::default() };
-                     content.push(Line::from(Span::styled(format!("TIME: {}s", remaining), style)));
+                    let remaining = limit.saturating_sub(session.level_elapsed_time);
+                    let style = if remaining <= 5 {
+                        Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default()
+                    };
+                    content.push(Line::from(Span::styled(
+                        format!("TIME: {}s", remaining),
+                        style,
+                    )));
                 }
-                
+
                 content.push(Line::from(""));
                 content.push(Line::from("Listen to the sound..."));
-                
+
                 match engine.settings.input_method {
                     InputMethod::DirectKeyboard => {
-                         content.push(Line::from("Press the matching key on your keyboard!"));
+                        content.push(Line::from("Press the matching key on your keyboard!"));
                     }
                     InputMethod::ArrowSelection => {
-                         content.push(Line::from("Use Left/Right Arrow keys to select, Enter to confirm!"));
+                        content.push(Line::from(
+                            "Use Left/Right Arrow keys to select, Enter to confirm!",
+                        ));
                     }
                     InputMethod::Hybrid => {
-                         content.push(Line::from("Type the character OR use Arrows to select!"));
+                        content.push(Line::from("Type the character OR use Arrows to select!"));
                     }
                 }
                 content.push(Line::from(""));
-                
+
                 if engine.settings.show_target_visual {
                     content.insert(0, Line::from(format!("Target: {}", session.target)));
                 }
@@ -113,11 +141,14 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 // Render Options
                 let mut options_spans = vec![];
                 for (i, option) in session.options.iter().enumerate() {
-                    let is_selected = (engine.settings.input_method == InputMethod::ArrowSelection || engine.settings.input_method == InputMethod::Hybrid) 
+                    let is_selected = (engine.settings.input_method == InputMethod::ArrowSelection
+                        || engine.settings.input_method == InputMethod::Hybrid)
                         && i == session.selected_index;
-                    
+
                     let style = if is_selected {
-                        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD | Modifier::REVERSED)
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD | Modifier::REVERSED)
                     } else {
                         Style::default()
                     };
@@ -150,45 +181,65 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 .block(Block::default().borders(Borders::ALL).title("Feedback"));
             f.render_widget(p, chunks[1]);
         }
-        GameStatus::LevelComplete { level: _, score, passed } => {
-             let title = if *passed { "LEVEL COMPLETE!" } else { "LEVEL FAILED" };
-             let color = if *passed { Color::Green } else { Color::Red };
-             
-             let total = if let Some(s) = &engine.session { s.total_questions } else { 5 };
+        GameStatus::LevelComplete {
+            level: _,
+            score,
+            passed,
+        } => {
+            let title = if *passed {
+                "LEVEL COMPLETE!"
+            } else {
+                "LEVEL FAILED"
+            };
+            let color = if *passed { Color::Green } else { Color::Red };
 
-             let mut text = vec![
-                Line::from(Span::styled(title, Style::default().fg(color).add_modifier(Modifier::BOLD))),
+            let total = if let Some(s) = &engine.session {
+                s.total_questions
+            } else {
+                5
+            };
+
+            let mut text = vec![
+                Line::from(Span::styled(
+                    title,
+                    Style::default().fg(color).add_modifier(Modifier::BOLD),
+                )),
                 Line::from(""),
                 Line::from(format!("Score: {}/{}", score, total)),
                 Line::from(""),
-             ];
-             
-             if *passed {
-                 text.push(Line::from("Press Enter to start next level"));
-             } else {
-                 text.push(Line::from("Press Enter to retry level"));
-             }
-             
-             let p = Paragraph::new(text)
-            .alignment(Alignment::Center)
-            .block(Block::default().borders(Borders::ALL).title("Summary"));
+            ];
+
+            if *passed {
+                text.push(Line::from("Press Enter to start next level"));
+            } else {
+                text.push(Line::from("Press Enter to retry level"));
+            }
+
+            let p = Paragraph::new(text)
+                .alignment(Alignment::Center)
+                .block(Block::default().borders(Borders::ALL).title("Summary"));
             f.render_widget(p, chunks[1]);
         }
         GameStatus::SessionComplete { score } => {
-             if let Some(_session) = &engine.session {
+            if let Some(_session) = &engine.session {
                 let text = vec![
-                    Line::from(Span::styled("YOU DID IT!", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))),
+                    Line::from(Span::styled(
+                        "YOU DID IT!",
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    )),
                     Line::from(""),
                     Line::from("GAME COMPLETE!"),
                     Line::from(format!("Total Score from all levels: {}", score)),
                     Line::from(""),
                     Line::from("Press 'M' for Menu"),
                 ];
-                 let p = Paragraph::new(text)
-                .alignment(Alignment::Center)
-                .block(Block::default().borders(Borders::ALL).title("Victory"));
+                let p = Paragraph::new(text)
+                    .alignment(Alignment::Center)
+                    .block(Block::default().borders(Borders::ALL).title("Victory"));
                 f.render_widget(p, chunks[1]);
-             }
+            }
         }
     }
 
@@ -196,5 +247,8 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
         GameStatus::Menu => "Use Keyboard to Select",
         _ => "Press 'Esc' to Quit",
     };
-    f.render_widget(Paragraph::new(footer_text).alignment(Alignment::Center), chunks[2]);
+    f.render_widget(
+        Paragraph::new(footer_text).alignment(Alignment::Center),
+        chunks[2],
+    );
 }

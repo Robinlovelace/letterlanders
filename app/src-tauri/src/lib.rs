@@ -1,7 +1,7 @@
-use letterlanders_core::{GameEngine, GameStatus, GameVariant, SoundEvent, SessionState};
+use letterlanders_core::{GameEngine, GameStatus, GameVariant, SessionState, SoundEvent};
+use serde::Serialize;
 use std::sync::Mutex;
 use tauri::State;
-use serde::Serialize;
 
 struct AppState {
     engine: Mutex<GameEngine>,
@@ -87,12 +87,14 @@ fn reset_game(state: State<AppState>) -> FrontendState {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState { engine: Mutex::new(GameEngine::new()) })
+        .manage(AppState {
+            engine: Mutex::new(GameEngine::new()),
+        })
         .invoke_handler(tauri::generate_handler![
-            get_game_state, 
-            start_new_game, 
-            submit_answer, 
-            next_level, 
+            get_game_state,
+            start_new_game,
+            submit_answer,
+            next_level,
             consume_sound,
             reset_game
         ])

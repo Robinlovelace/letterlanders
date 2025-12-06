@@ -19,7 +19,9 @@ pub enum SoundEvent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum GameStatus {
     Menu,
-    Settings { message: Option<String> },
+    Settings {
+        message: Option<String>,
+    },
     Playing,
     Feedback {
         success: bool,
@@ -30,7 +32,9 @@ pub enum GameStatus {
         score: u32,
         passed: bool,
     },
-    SessionComplete { score: u32 },
+    SessionComplete {
+        score: u32,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
