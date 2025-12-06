@@ -25,6 +25,7 @@ sudo apt-get install libwebkit2gtk-4.1-dev build-essential curl wget file libssl
 ## How to Run
 
 ### 1. Terminal Game (TUI)
+
 The TUI is the fastest way to test game logic and play in a text-based environment.
 
 ```bash
@@ -38,6 +39,7 @@ cargo run -p letterlanders-tui
 *   `Esc`: Quit
 
 ### 2. Graphical App (Desktop/Web)
+
 The Tauri app provides the rich visual experience.
 
 ```bash
