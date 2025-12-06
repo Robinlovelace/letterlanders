@@ -1,6 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
-
-// Define types locally matching Rust types
 export type GameVariant = "Numbers" | "Letters";
 export type InputMethod = "DirectKeyboard" | "ArrowSelection" | "Hybrid";
 
@@ -45,7 +42,6 @@ export interface FrontendState {
     session: SessionState | null;
 }
 
-// Svelte 5 Runes Store
 class GameStore {
     state = $state<FrontendState>({ status: "Menu", session: null });
     settings = $state<GameSettings>({
@@ -57,28 +53,19 @@ class GameStore {
     lastSound = $state<SoundEvent | null>(null);
     feedbackTimer: number | null = null;
 
-    constructor() {
-        this.syncState();
-        this.loadSettings();
-        // Poll for sound every 100ms
-        setInterval(() => this.checkSound(), 100);
-    }
+    constructor() {}
 
-    // Centralized method to handle state updates and side effects (like timers)
     processState(newState: FrontendState) {
-        // Handle Auto-Advance for Feedback
         if (newState.status && typeof newState.status === 'object' && 'Feedback' in newState.status) {
-            if (!this.feedbackTimer) {
-                // Start timer if not already running
-                // Use duration from settings
-                const duration = this.settings.feedback_duration_seconds * 1000;
-                this.feedbackTimer = setTimeout(() => {
-                    this.nextLevel();
-                    this.feedbackTimer = null;
-                }, duration);
+            if (this.feedbackTimer) {
+                clearTimeout(this.feedbackTimer);
             }
+            const duration = this.settings.feedback_duration_seconds * 1000;
+            this.feedbackTimer = setTimeout(() => {
+                this.nextLevel();
+                this.feedbackTimer = null;
+            }, duration);
         } else {
-            // Clear timer if we moved away from Feedback
             if (this.feedbackTimer) {
                 clearTimeout(this.feedbackTimer);
                 this.feedbackTimer = null;
@@ -87,68 +74,84 @@ class GameStore {
         this.state = newState;
     }
 
-    async syncState() {
-        try {
-            const newState = await invoke<FrontendState>("get_game_state");
-            this.processState(newState);
-        } catch (e) {
-            console.error("Failed to sync state", e);
-        }
-    }
-
-    async loadSettings() {
-        try {
-            this.settings = await invoke<GameSettings>("get_settings");
-        } catch (e) {
-            console.error("Failed to load settings", e);
-        }
-    }
-
     async saveSettings(newSettings: GameSettings) {
-        try {
-            this.settings = newSettings;
-            const newState = await invoke<FrontendState>("update_settings", { settings: newSettings });
-            this.processState(newState);
-        } catch (e) {
-            console.error("Failed to save settings", e);
-        }
+        this.settings = newSettings;
+        this.processState({ ...this.state, status: { Settings: { message: "Settings saved!" } } });
+        setTimeout(() => this.reset(), 1000);
     }
 
     async goToSettings() {
-        const newState = await invoke<FrontendState>("go_to_settings");
-        this.processState(newState);
-    }
-
-    async checkSound() {
-        try {
-            const sound = await invoke<SoundEvent | null>("consume_sound");
-            if (sound) {
-                this.lastSound = sound;
-            }
-        } catch (e) {
-            // Silently ignore - sound polling errors are not critical
-        }
+        this.processState({ ...this.state, status: { Settings: { message: null } } });
     }
 
     async startGame(variant: GameVariant) {
-        const newState = await invoke<FrontendState>("start_new_game", { variantStr: variant });
-        this.processState(newState);
+        this.processState({
+            status: "Playing",
+            session: {
+                variant,
+                current_level: 1,
+                current_question_index: 0,
+                total_questions: 5,
+                score: 0,
+                total_score: 0,
+                target: variant === "Letters" ? "A" : "1",
+                options: variant === "Letters" ? ["A", "B", "C", "D"] : ["1", "2", "3", "4"],
+                level_time_limit: null,
+                level_elapsed_time: 0,
+            }
+        });
     }
 
     async submitAnswer(answer: string) {
-        const newState = await invoke<FrontendState>("submit_answer", { answer: answer.charAt(0) });
-        this.processState(newState);
+        if (!this.state.session) return;
+
+        const success = this.state.session.target.toUpperCase() === answer.toUpperCase();
+        let newScore = this.state.session.score;
+        if (success) {
+            newScore += 10;
+        }
+
+        this.processState({
+            ...this.state,
+            session: { ...this.state.session, score: newScore },
+            status: { Feedback: { success, message: success ? "Correct!" : "Try again!" } }
+        });
     }
 
     async nextLevel() {
-        const newState = await invoke<FrontendState>("next_level");
-        this.processState(newState);
+        if (!this.state.session) return;
+
+        if (this.state.session.current_question_index < this.state.session.total_questions - 1) {
+            const nextIndex = this.state.session.current_question_index + 1;
+            const nextTarget = this.state.session.variant === "Letters" 
+                ? String.fromCharCode(65 + nextIndex) 
+                : (nextIndex + 1).toString();
+            
+            this.processState({
+                ...this.state,
+                session: {
+                    ...this.state.session,
+                    current_question_index: nextIndex,
+                    target: nextTarget,
+                },
+                status: "Playing"
+            });
+
+        } else {
+            this.processState({
+                ...this.state,
+                status: { LevelComplete: { level: this.state.session.current_level, score: this.state.session.score, passed: this.state.session.score > 30 } }
+            });
+        }
     }
 
     async reset() {
-        const newState = await invoke<FrontendState>("reset_game");
-        this.processState(newState);
+        this.processState({ status: "Menu", session: null });
     }
+    
+    async syncState() {}
+    async loadSettings() {}
+    async checkSound() {}
 }
 
 export const game = new GameStore();
