@@ -34,21 +34,28 @@
     }
 
     h1 {
-        font-size: 4rem;
+        font-size: clamp(2.5rem, 8vw, 4rem); /* Responsive font size */
         margin-bottom: 0.5rem;
         color: #ffd700;
         text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        text-align: center;
     }
 
     .subtitle {
-        font-size: 1.5rem;
+        font-size: clamp(1rem, 4vw, 1.5rem);
         color: #a0a0a0;
         margin-bottom: 3rem;
+        text-align: center;
     }
 
     .buttons {
         display: flex;
         gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        padding: 0 1rem;
+        box-sizing: border-box;
     }
 
     button {
@@ -63,7 +70,8 @@
         color: white;
         cursor: pointer;
         transition: all 0.2s;
-        width: 200px;
+        flex: 1 1 140px; /* Grow, shrink, basis */
+        max-width: 220px;
     }
 
     button:hover {
