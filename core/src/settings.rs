@@ -1,7 +1,10 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::default::Default;
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +57,7 @@ impl Default for GameSettings {
 }
 
 impl GameSettings {
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         if !path.as_ref().exists() {
             let defaults = Self::default();
@@ -65,6 +69,7 @@ impl GameSettings {
         Ok(settings)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let content = serde_json::to_string_pretty(self)?;
         fs::write(path, content)?;

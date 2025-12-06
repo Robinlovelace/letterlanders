@@ -3,5 +3,7 @@ members = [
     "core",
     "tui",
     "app/src-tauri",
+    "wasm"
 ]
+
 resolver = "2"
