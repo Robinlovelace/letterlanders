@@ -56,10 +56,10 @@ jobs:
         working-directory: app/src-tauri/gen/android
         run: |
           if [ ! -f tauri.settings.gradle ]; then
-            cat > tauri.settings.gradle <<'EOF'
-            include(":app")
-            project(":app").projectDir = file("app")
-            EOF
+            printf "%s\n" \
+              'include(":app")' \
+              'project(":app").projectDir = file("app")' \
+              > tauri.settings.gradle
           fi
 
       - name: Build Android APK (debug)
@@ -124,10 +124,10 @@ jobs:
         working-directory: app/src-tauri/gen/android
         run: |
           if [ ! -f tauri.settings.gradle ]; then
-            cat > tauri.settings.gradle <<'EOF'
-            include(":app")
-            project(":app").projectDir = file("app")
-            EOF
+            printf "%s\n" \
+              'include(":app")' \
+              'project(":app").projectDir = file("app")' \
+              > tauri.settings.gradle
           fi
 
       - name: Restore Android keystore from secrets
