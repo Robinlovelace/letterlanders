@@ -61,7 +61,7 @@ jobs:
         working-directory: app
         # This produces a universal APK by default in some versions, or splits.
         # We'll try to find the universal one.
-        run: npm run tauri android build
+        run: npm run tauri android build -- --debug
 
       - name: List Build Outputs (Debug)
         run: find app/src-tauri/gen/android/app/build/outputs/apk -name "*.apk"
@@ -70,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: letterlanders-android-apk
-          path: app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+          path: app/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
