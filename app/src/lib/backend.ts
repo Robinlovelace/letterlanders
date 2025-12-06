@@ -1,15 +1,14 @@
 /**
- * Backend Adapter Pattern for Tauri + WASM Support
+ * WASM Backend for Web and Tauri
  * 
- * This module provides a unified interface for the game backend,
- * allowing the frontend to work with either:
- * - Tauri (desktop/mobile): Uses IPC to communicate with Rust process
- * - WASM (web): Runs Rust code directly in the browser via WebAssembly
+ * This module provides the game backend using WebAssembly.
+ * The same WASM module runs in both browser and Tauri environments,
+ * simplifying the architecture to a single code path.
  */
 
 import type { FrontendState, GameSettings, SoundEvent, GameVariant } from './game-store.svelte';
 
-// Backend interface that both adapters implement
+// Backend interface
 export interface IBackendAdapter {
     getGameState(): Promise<FrontendState>;
     getSettings(): Promise<GameSettings>;
@@ -22,52 +21,7 @@ export interface IBackendAdapter {
     consumeSound(): Promise<SoundEvent | null>;
 }
 
-// Tauri Backend Adapter - communicates with Rust via IPC
-class TauriBackend implements IBackendAdapter {
-    private invoke: typeof import('@tauri-apps/api/core').invoke;
-
-    constructor(invoke: typeof import('@tauri-apps/api/core').invoke) {
-        this.invoke = invoke;
-    }
-
-    async getGameState(): Promise<FrontendState> {
-        return this.invoke<FrontendState>("get_game_state");
-    }
-
-    async getSettings(): Promise<GameSettings> {
-        return this.invoke<GameSettings>("get_settings");
-    }
-
-    async updateSettings(settings: GameSettings): Promise<FrontendState> {
-        return this.invoke<FrontendState>("update_settings", { settings });
-    }
-
-    async goToSettings(): Promise<FrontendState> {
-        return this.invoke<FrontendState>("go_to_settings");
-    }
-
-    async startNewGame(variant: GameVariant): Promise<FrontendState> {
-        return this.invoke<FrontendState>("start_new_game", { variantStr: variant });
-    }
-
-    async submitAnswer(answer: string): Promise<FrontendState> {
-        return this.invoke<FrontendState>("submit_answer", { answer: answer.charAt(0) });
-    }
-
-    async nextLevel(): Promise<FrontendState> {
-        return this.invoke<FrontendState>("next_level");
-    }
-
-    async resetGame(): Promise<FrontendState> {
-        return this.invoke<FrontendState>("reset_game");
-    }
-
-    async consumeSound(): Promise<SoundEvent | null> {
-        return this.invoke<SoundEvent | null>("consume_sound");
-    }
-}
-
-// WASM Backend Adapter - runs Rust code directly in the browser
+// WASM Backend - runs Rust code via WebAssembly (used for ALL platforms)
 class WasmBackend implements IBackendAdapter {
     private engine: import('./wasm-pkg/letterlanders_wasm').WasmGameEngine | null = null;
     private initPromise: Promise<void> | null = null;
@@ -135,27 +89,13 @@ class WasmBackend implements IBackendAdapter {
     }
 }
 
-// Detect environment and create appropriate backend
-export async function createBackend(): Promise<IBackendAdapter> {
-    // Check if we're in a Tauri environment
-    const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
-
-    if (isTauri) {
-        console.log('[Backend] Using Tauri adapter (IPC to Rust process)');
-        const { invoke } = await import('@tauri-apps/api/core');
-        return new TauriBackend(invoke);
-    } else {
-        console.log('[Backend] Using WASM adapter (Rust in browser)');
-        return new WasmBackend();
-    }
-}
-
-// Export a singleton promise for the backend
-let backendPromise: Promise<IBackendAdapter> | null = null;
+// Singleton backend instance
+let backend: WasmBackend | null = null;
 
 export function getBackend(): Promise<IBackendAdapter> {
-    if (!backendPromise) {
-        backendPromise = createBackend();
+    if (!backend) {
+        console.log('[Backend] Using WASM backend (Rust in WebAssembly)');
+        backend = new WasmBackend();
     }
-    return backendPromise;
+    return Promise.resolve(backend);
 }
