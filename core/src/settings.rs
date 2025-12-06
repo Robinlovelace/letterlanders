@@ -21,6 +21,9 @@ pub struct GameSettings {
 
     #[serde(default = "default_input_method")]
     pub input_method: InputMethod,
+
+    #[serde(default = "default_start_level")]
+    pub start_level: u32,
 }
 
 fn default_feedback_duration() -> u64 {
@@ -35,12 +38,17 @@ fn default_input_method() -> InputMethod {
     InputMethod::Hybrid
 }
 
+fn default_start_level() -> u32 {
+    1
+}
+
 impl Default for GameSettings {
     fn default() -> Self {
         Self {
             feedback_duration_seconds: default_feedback_duration(),
             show_target_visual: default_show_target(),
             input_method: default_input_method(),
+            start_level: default_start_level(),
         }
     }
 }

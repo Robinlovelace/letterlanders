@@ -58,8 +58,9 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 Line::from(format!("1. Show Target Visual: {} (Press '1' to toggle)", s.show_target_visual)),
                 Line::from(format!("2. Feedback Duration: {}s (Press '2' to cycle)", s.feedback_duration_seconds)),
                 Line::from(format!("3. Input Method: {} (Press '3' to toggle)", input_method_str)),
-                Line::from("4. Export Settings (Press '4' - shares config)"),
-                Line::from("5. Import Settings (Press '5' - note: not backwards compatible)"),
+                Line::from(format!("4. Start Level: {} (Press '4' to cycle 1-4)", s.start_level)),
+                Line::from("5. Export Settings (Press '5' - shares config)"),
+                Line::from("6. Import Settings (Press '6' - note: not backwards compatible)"),
                 Line::from(""),
                 Line::from("Press 'Esc' to Save & Back"),
             ];
@@ -152,10 +153,13 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
         GameStatus::LevelComplete { level: _, score, passed } => {
              let title = if *passed { "LEVEL COMPLETE!" } else { "LEVEL FAILED" };
              let color = if *passed { Color::Green } else { Color::Red };
+             
+             let total = if let Some(s) = &engine.session { s.total_questions } else { 5 };
+
              let mut text = vec![
                 Line::from(Span::styled(title, Style::default().fg(color).add_modifier(Modifier::BOLD))),
                 Line::from(""),
-                Line::from(format!("Score: {}/5", score)),
+                Line::from(format!("Score: {}/{}", score, total)),
                 Line::from(""),
              ];
              
@@ -170,17 +174,19 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
             .block(Block::default().borders(Borders::ALL).title("Summary"));
             f.render_widget(p, chunks[1]);
         }
-        GameStatus::SessionComplete => {
-             if let Some(session) = &engine.session {
+        GameStatus::SessionComplete { score } => {
+             if let Some(_session) = &engine.session {
                 let text = vec![
-                    Line::from("Session Complete!"),
-                    Line::from(format!("Final Score: {}/{}", session.score, session.total_questions)),
+                    Line::from(Span::styled("YOU DID IT!", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))),
+                    Line::from(""),
+                    Line::from("GAME COMPLETE!"),
+                    Line::from(format!("Total Score from all levels: {}", score)),
                     Line::from(""),
                     Line::from("Press 'M' for Menu"),
                 ];
                  let p = Paragraph::new(text)
                 .alignment(Alignment::Center)
-                .block(Block::default().borders(Borders::ALL).title("Game Over"));
+                .block(Block::default().borders(Borders::ALL).title("Victory"));
                 f.render_widget(p, chunks[1]);
              }
         }

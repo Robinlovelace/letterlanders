@@ -129,13 +129,21 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, sink: Option<&
                                     *message = None;
                                 }
                                 KeyCode::Char('4') => {
+                                    engine.settings.start_level = if engine.settings.start_level >= 4 {
+                                        1
+                                    } else {
+                                        engine.settings.start_level + 1
+                                    };
+                                    *message = None;
+                                }
+                                KeyCode::Char('5') => {
                                     // Export
                                     match engine.settings.save_to_file("letterlanders_settings_export.json") {
                                         Ok(_) => *message = Some("Exported to letterlanders_settings_export.json".to_string()),
                                         Err(e) => *message = Some(format!("Export failed: {}", e)),
                                     }
                                 }
-                                KeyCode::Char('5') => {
+                                KeyCode::Char('6') => {
                                     // Import
                                     match GameSettings::load_from_file("letterlanders_settings_export.json") {
                                         Ok(s) => {
@@ -197,7 +205,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, sink: Option<&
                                 _ => {}
                             }
                         }
-                        GameStatus::SessionComplete => {
+                        GameStatus::SessionComplete { .. } => {
                              match key.code {
                                 KeyCode::Char('m') | KeyCode::Char('M') | KeyCode::Esc => engine.status = GameStatus::Menu,
                                 _ => {}

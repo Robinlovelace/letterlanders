@@ -30,7 +30,7 @@ pub enum GameStatus {
         score: u32,
         passed: bool,
     },
-    SessionComplete,
+    SessionComplete { score: u32 },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,6 +40,7 @@ pub struct SessionState {
     pub current_question_index: u32,
     pub total_questions: u32,
     pub score: u32,
+    pub total_score: u32, // Cumulative score across levels
     pub target: char,
     pub options: Vec<char>, // Visual hint options
     #[serde(default)]
