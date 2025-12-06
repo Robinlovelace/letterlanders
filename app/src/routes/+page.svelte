@@ -6,6 +6,7 @@
     import Victory from "$lib/Victory.svelte";
     import LevelComplete from "$lib/LevelComplete.svelte";
     import AudioPlayer from "$lib/AudioPlayer.svelte";
+    import Settings from "$lib/Settings.svelte";
 
     let status = $derived(game.state.status);
 </script>
@@ -14,6 +15,8 @@
 
 {#if status === "Menu"}
     <Menu />
+{:else if typeof status === "object" && "Settings" in status}
+    <Settings />
 {:else if status === "Playing" || (typeof status === "object" && "Feedback" in status)}
     <Game />
     {#if typeof status === "object" && "Feedback" in status}

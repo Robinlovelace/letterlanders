@@ -1,4 +1,4 @@
-use letterlanders_core::{GameEngine, GameStatus, GameVariant, SessionState, SoundEvent};
+use letterlanders_core::{GameEngine, GameStatus, GameVariant, SessionState, SoundEvent, GameSettings};
 use serde::Serialize;
 use std::sync::Mutex;
 use tauri::State;
@@ -13,13 +13,41 @@ struct FrontendState {
     session: Option<SessionState>,
 }
 
+impl FrontendState {
+    fn from_engine(engine: &GameEngine) -> Self {
+        Self {
+            status: engine.status.clone(),
+            session: engine.session.clone(),
+        }
+    }
+}
+
 #[tauri::command]
 fn get_game_state(state: State<AppState>) -> FrontendState {
     let engine = state.engine.lock().unwrap();
-    FrontendState {
-        status: engine.status.clone(),
-        session: engine.session.clone(),
-    }
+    FrontendState::from_engine(&engine)
+}
+
+#[tauri::command]
+fn get_settings(state: State<AppState>) -> GameSettings {
+    let engine = state.engine.lock().unwrap();
+    engine.settings.clone()
+}
+
+#[tauri::command]
+fn update_settings(state: State<AppState>, settings: GameSettings) -> FrontendState {
+    let mut engine = state.engine.lock().unwrap();
+    engine.settings = settings;
+    let _ = engine.settings.save_to_file("settings.json");
+    engine.status = GameStatus::Menu; // Return to menu after saving
+    FrontendState::from_engine(&engine)
+}
+
+#[tauri::command]
+fn go_to_settings(state: State<AppState>) -> FrontendState {
+    let mut engine = state.engine.lock().unwrap();
+    engine.status = GameStatus::Settings { message: None };
+    FrontendState::from_engine(&engine)
 }
 
 #[tauri::command]
@@ -30,20 +58,14 @@ fn start_new_game(state: State<AppState>, variant_str: String) -> FrontendState 
         _ => GameVariant::Numbers,
     };
     engine.start_game(variant);
-    FrontendState {
-        status: engine.status.clone(),
-        session: engine.session.clone(),
-    }
+    FrontendState::from_engine(&engine)
 }
 
 #[tauri::command]
 fn submit_answer(state: State<AppState>, answer: char) -> FrontendState {
     let mut engine = state.engine.lock().unwrap();
     engine.submit_answer(answer);
-    FrontendState {
-        status: engine.status.clone(),
-        session: engine.session.clone(),
-    }
+    FrontendState::from_engine(&engine)
 }
 
 #[tauri::command]
@@ -54,10 +76,7 @@ fn next_level(state: State<AppState>) -> FrontendState {
         GameStatus::Feedback { .. } => engine.next_level(),
         _ => {}
     }
-    FrontendState {
-        status: engine.status.clone(),
-        session: engine.session.clone(),
-    }
+    FrontendState::from_engine(&engine)
 }
 
 #[tauri::command]
@@ -77,10 +96,7 @@ fn reset_game(state: State<AppState>) -> FrontendState {
     let mut engine = state.engine.lock().unwrap();
     engine.status = GameStatus::Menu;
     engine.session = None;
-    FrontendState {
-        status: engine.status.clone(),
-        session: engine.session.clone(),
-    }
+    FrontendState::from_engine(&engine)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -88,10 +104,15 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
-            engine: Mutex::new(GameEngine::new()),
+            engine: Mutex::new(GameEngine::new_with_settings(
+                GameSettings::load_from_file("settings.json").unwrap_or_default()
+            )),
         })
         .invoke_handler(tauri::generate_handler![
             get_game_state,
+            get_settings,
+            update_settings,
+            go_to_settings,
             start_new_game,
             submit_answer,
             next_level,

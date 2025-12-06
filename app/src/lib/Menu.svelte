@@ -16,6 +16,10 @@
             Play Letters
         </button>
     </div>
+
+    <button class="settings-btn" onclick={() => game.goToSettings()}>
+        Settings
+    </button>
 </div>
 
 <style>
@@ -71,5 +75,14 @@
     .icon {
         font-size: 3rem;
         margin-bottom: 1rem;
+    }
+
+    .settings-btn {
+        margin-top: 2rem;
+        width: auto;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 </style>
