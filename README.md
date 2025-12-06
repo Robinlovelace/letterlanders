@@ -54,6 +54,20 @@ cp -r ../assets/sounds static/
 npm run tauri dev
 ```
 
+## Android Signing Setup
+
+1. Initialize the Android project once: `cd app && npm run tauri android init`.
+2. Generate a private keystore locally (Git-ignored):
+    - Edit `.create-keystore.sh` defaults if needed, then run `chmod +x .create-keystore.sh && ./ .create-keystore.sh`.
+    - The script writes `app/src-tauri/gen/android/app/release-keystore.jks` to match the CI workflow.
+3. Add GitHub repository secrets for the workflow:
+    - `ANDROID_KEYSTORE`: `base64 -w0 app/src-tauri/gen/android/app/release-keystore.jks`
+    - `ANDROID_KEYSTORE_PASSWORD`: the store password you chose
+    - `ANDROID_KEY_ALIAS`: the alias you chose
+    - `ANDROID_KEY_PASSWORD`: the key password (use the store password if shared)
+    - Optional deploy: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` (service account JSON for Play uploads)
+4. Trigger the `Android Build` workflow (`main` push or `workflow_dispatch`); the release job produces a signed `.aab` artifact.
+
 ## Project Structure
 
 ```text

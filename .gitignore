@@ -11,6 +11,8 @@ node_modules/
 assets/sounds/
 app/static/sounds/
 **/*.wav
+.create-keystore.sh
+app/src-tauri/gen/android/app/*.jks
 
 
 # IDEs

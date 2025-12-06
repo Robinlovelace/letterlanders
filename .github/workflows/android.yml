@@ -6,9 +6,9 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-android:
+  debug-apk:
+    name: Build Debug APK (unsigned)
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -34,40 +34,128 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
 
       - name: Install Frontend Dependencies
         working-directory: app
         run: npm install
 
       - name: Download Sound Assets
-        run: |
-          mkdir -p app/static/sounds/prompts
-          # Download all WAV files from the release
-          gh release download v0.0.2 --pattern "*.wav" --dir app/static/sounds/prompts
-          # Move core sounds to parent directory
-          mv app/static/sounds/prompts/success.wav app/static/sounds/
-          mv app/static/sounds/prompts/failure.wav app/static/sounds/
-          mv app/static/sounds/prompts/complete.wav app/static/sounds/
+        working-directory: app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p static/sounds/prompts
+          gh release download --pattern "*.wav" --dir static/sounds/prompts
 
       - name: Initialize Android Project
         working-directory: app
-        # We assume the environment is set up correctly so init works without prompts
         run: npm run tauri android init
 
-      - name: Build Android APK
+      - name: Build Android APK (debug)
         working-directory: app
-        # This produces a universal APK by default in some versions, or splits.
-        # We'll try to find the universal one.
-        run: npm run tauri android build -- --debug
+        run: npm run tauri android build
 
-      - name: List Build Outputs (Debug)
-        run: find app/src-tauri/gen/android/app/build/outputs/apk -name "*.apk"
-
-      - name: Upload APK Artifact
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: letterlanders-android-apk
-          path: app/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+          name: letterlanders-android-apk-debug
+          path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+
+  release-aab:
+    name: Build Release AAB (signed)
+    runs-on: ubuntu-latest
+    needs: debug-apk
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
+
+      - name: Install Frontend Dependencies
+        working-directory: app
+        run: npm install
+
+      - name: Download Sound Assets
+        working-directory: app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p static/sounds/prompts
+          gh release download --pattern "*.wav" --dir static/sounds/prompts
+
+      - name: Initialize Android Project
+        working-directory: app
+        run: npm run tauri android init
+
+      - name: Restore Android keystore from secrets
+        run: |
+          if [ -z "$ANDROID_KEYSTORE" ]; then
+            echo "No ANDROID_KEYSTORE secret set; skipping signing.";
+            exit 0;
+          fi
+          mkdir -p app/src-tauri/gen/android/app
+          echo "$ANDROID_KEYSTORE" | base64 --decode > app/src-tauri/gen/android/app/release-keystore.jks
+          chmod 600 app/src-tauri/gen/android/app/release-keystore.jks
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+
+      - name: Create keystore.properties
+        run: |
+          if [ -z "$ANDROID_KEYSTORE" ]; then
+            echo "No ANDROID_KEYSTORE secret set; skipping signing config.";
+            exit 0;
+          fi
+          cat > app/src-tauri/gen/android/keystore.properties <<EOF
+          storeFile=release-keystore.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build Release App Bundle (signed)
+        working-directory: app/src-tauri/gen/android
+        run: |
+          chmod +x gradlew || true
+          ./gradlew clean bundleRelease
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-bundle
+          path: app/src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
+
+      # Optional: Deploy to Google Play (internal track)
+      # - name: Deploy to Google Play
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+      #     packageName: com.example.yourapp  # <-- set your app id
+      #     releaseFiles: app/src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
