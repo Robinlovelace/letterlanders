@@ -52,6 +52,16 @@ jobs:
         working-directory: app
         run: npm run tauri android init
 
+      - name: Ensure Gradle settings file
+        working-directory: app/src-tauri/gen/android
+        run: |
+          if [ ! -f tauri.settings.gradle ]; then
+            cat > tauri.settings.gradle <<'EOF'
+include(":app")
+project(":app").projectDir = file("app")
+EOF
+          fi
+
       - name: Build Android APK (debug)
         working-directory: app
         run: npm run tauri android build
@@ -109,6 +119,16 @@ jobs:
       - name: Initialize Android Project
         working-directory: app
         run: npm run tauri android init
+
+      - name: Ensure Gradle settings file
+        working-directory: app/src-tauri/gen/android
+        run: |
+          if [ ! -f tauri.settings.gradle ]; then
+            cat > tauri.settings.gradle <<'EOF'
+include(":app")
+project(":app").projectDir = file("app")
+EOF
+          fi
 
       - name: Restore Android keystore from secrets
         run: |
