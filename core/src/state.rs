@@ -4,25 +4,29 @@ use serde::{Deserialize, Serialize};
 pub enum GameVariant {
     Numbers,
     Letters,
+    LetterTeams,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum SoundEvent {
     #[default]
     None,
     PlaySuccess,
     PlayFailure,
-    SayPrompt(char),
+    SayPrompt(String),
     GameStart,
     LevelComplete,
 }
 
 impl GameVariant {
-    /// Returns the character pool for this game variant
-    pub fn char_pool(&self) -> Vec<char> {
+    /// Returns the item pool (characters or strings) for this game variant
+    pub fn item_pool(&self) -> Vec<String> {
         match self {
-            GameVariant::Numbers => ('1'..='9').collect(),
-            GameVariant::Letters => ('A'..='Z').collect(),
+            GameVariant::Numbers => ('1'..='9').map(|c| c.to_string()).collect(),
+            GameVariant::Letters => ('A'..='Z').map(|c| c.to_string()).collect(),
+            GameVariant::LetterTeams => vec![
+                "th", "sh", "ch", "wh", "ph", "ng", "ck", "qu"
+            ].into_iter().map(String::from).collect(),
         }
     }
 }
@@ -56,8 +60,8 @@ pub struct SessionState {
     pub total_questions: u32,
     pub score: u32,
     pub total_score: u32, // Cumulative score across levels
-    pub target: char,
-    pub options: Vec<char>, // Visual hint options
+    pub target: String,
+    pub options: Vec<String>, // Visual hint options
     #[serde(default)]
     pub selected_index: usize, // For ArrowSelection mode
     pub level_time_limit: Option<u64>, // Seconds, None if no limit

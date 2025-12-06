@@ -15,6 +15,10 @@
             <span class="icon">ABC</span>
             Play Letters
         </button>
+        <button onclick={() => game.startGame("LetterTeams")}>
+            <span class="icon">Th</span>
+            Letter Teams
+        </button>
     </div>
 
     <button class="settings-btn" onclick={() => game.goToSettings()}>

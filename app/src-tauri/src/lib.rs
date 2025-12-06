@@ -57,6 +57,7 @@ fn start_new_game(state: State<AppState>, variant_str: String) -> FrontendState 
     let mut engine = state.engine.lock().unwrap();
     let variant = match variant_str.as_str() {
         "Letters" => GameVariant::Letters,
+        "LetterTeams" => GameVariant::LetterTeams,
         _ => GameVariant::Numbers,
     };
     engine.start_game(variant);
@@ -64,7 +65,7 @@ fn start_new_game(state: State<AppState>, variant_str: String) -> FrontendState 
 }
 
 #[tauri::command]
-fn submit_answer(state: State<AppState>, answer: char) -> FrontendState {
+fn submit_answer(state: State<AppState>, answer: String) -> FrontendState {
     let mut engine = state.engine.lock().unwrap();
     engine.submit_answer(answer);
     FrontendState::from_engine(&engine)

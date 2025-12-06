@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 // Define types locally matching Rust types
-export type GameVariant = "Numbers" | "Letters";
+export type GameVariant = "Numbers" | "Letters" | "LetterTeams";
 export type InputMethod = "DirectKeyboard" | "ArrowSelection" | "Hybrid";
 
 export interface GameSettings {
@@ -136,7 +136,7 @@ class GameStore {
     }
 
     async submitAnswer(answer: string) {
-        const newState = await invoke<FrontendState>("submit_answer", { answer: answer.charAt(0) });
+        const newState = await invoke<FrontendState>("submit_answer", { answer: answer });
         this.processState(newState);
     }
 
