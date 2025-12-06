@@ -42,7 +42,7 @@ impl GameEngine {
             total_questions: 5, // Default for non-boss levels
             score: 0,
             total_score: 0,
-            target: ' ',
+            target: String::new(),
             options: vec![],
             selected_index: 0,
             level_time_limit: None,
@@ -55,7 +55,7 @@ impl GameEngine {
         self.status = GameStatus::Playing;
 
         if let Some(s) = &self.session {
-            self.last_sound = SoundEvent::SayPrompt(s.target);
+            self.last_sound = SoundEvent::SayPrompt(s.target.clone());
         }
     }
 
@@ -80,13 +80,13 @@ impl GameEngine {
         session.level_time_limit = time_limit;
         session.level_elapsed_time = 0; // Reset timer for new question/level
 
-        let pool = session.variant.char_pool();
-        let target = *pool.choose(&mut rng).unwrap();
+        let pool = session.variant.item_pool();
+        let target = pool.choose(&mut rng).unwrap().clone();
 
         // Generate distinct options (including target)
-        let mut options = vec![target];
+        let mut options = vec![target.clone()];
         while options.len() < num_options {
-            let choice = *pool.choose(&mut rng).unwrap();
+            let choice = pool.choose(&mut rng).unwrap().clone();
             if !options.contains(&choice) {
                 options.push(choice);
             }
@@ -132,7 +132,7 @@ impl GameEngine {
             } else {
                 Self::generate_level_question(session);
                 self.status = GameStatus::Playing;
-                self.last_sound = SoundEvent::SayPrompt(session.target);
+                self.last_sound = SoundEvent::SayPrompt(session.target.clone());
             }
         }
     }
@@ -163,7 +163,7 @@ impl GameEngine {
 
                 Self::generate_level_question(session);
                 self.status = GameStatus::Playing;
-                self.last_sound = SoundEvent::SayPrompt(session.target);
+                self.last_sound = SoundEvent::SayPrompt(session.target.clone());
             }
         }
     }
@@ -200,15 +200,15 @@ impl GameEngine {
 
     pub fn submit_current_selection(&mut self) {
         if let Some(session) = &self.session {
-            if let Some(&selected_char) = session.options.get(session.selected_index) {
-                // We need to clone the char to avoid borrowing issues since submit_answer uses &mut self
-                let choice = selected_char;
+            if let Some(selected) = session.options.get(session.selected_index) {
+                // We need to clone the string to avoid borrowing issues since submit_answer uses &mut self
+                let choice = selected.clone();
                 self.submit_answer(choice);
             }
         }
     }
 
-    pub fn submit_answer(&mut self, input: char) {
+    pub fn submit_answer(&mut self, input: String) {
         if let Some(session) = &mut self.session {
             let is_correct = input.eq_ignore_ascii_case(&session.target);
 

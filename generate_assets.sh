@@ -16,4 +16,10 @@ for char in {A..Z}; do
     espeak -w "assets/sounds/prompts/$char.wav" "Choose $char"
 done
 
+# Letter Teams Prompts
+teams=("th" "sh" "ch" "wh" "ph" "ng" "ck" "qu")
+for team in "${teams[@]}"; do
+    espeak -w "assets/sounds/prompts/$team.wav" "Choose $team"
+done
+
 echo "Done! Assets generated in assets/sounds/"

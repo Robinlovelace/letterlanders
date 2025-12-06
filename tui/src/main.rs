@@ -107,6 +107,9 @@ fn run_app(
                             KeyCode::Char('l') | KeyCode::Char('L') => {
                                 engine.start_game(GameVariant::Letters)
                             }
+                            KeyCode::Char('t') | KeyCode::Char('T') => {
+                                engine.start_game(GameVariant::LetterTeams)
+                            }
                             KeyCode::Char('s') | KeyCode::Char('S') => {
                                 engine.status = GameStatus::Settings { message: None }
                             }
@@ -194,7 +197,7 @@ fn run_app(
                         }
                         GameStatus::Playing => match engine.settings.input_method {
                             InputMethod::DirectKeyboard => match key.code {
-                                KeyCode::Char(c) => engine.submit_answer(c),
+                                KeyCode::Char(c) => engine.submit_answer(c.to_string()),
                                 KeyCode::Esc => engine.status = GameStatus::Menu,
                                 _ => {}
                             },
@@ -209,7 +212,7 @@ fn run_app(
                                 KeyCode::Left => engine.move_selection(-1),
                                 KeyCode::Right => engine.move_selection(1),
                                 KeyCode::Enter => engine.submit_current_selection(),
-                                KeyCode::Char(c) => engine.submit_answer(c),
+                                KeyCode::Char(c) => engine.submit_answer(c.to_string()),
                                 KeyCode::Esc => engine.status = GameStatus::Menu,
                                 _ => {}
                             },
