@@ -24,7 +24,7 @@ fn start_new_game(state: State<AppState>) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState { engine: Mutex::new(GameEngine::new()) })
+        .manage(AppState { engine: Mutex::new(GameEngine::new()) }) // new() uses default settings
         .invoke_handler(tauri::generate_handler![greet, start_new_game])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

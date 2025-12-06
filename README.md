@@ -18,7 +18,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design decisions.
 2.  **Node.js**: [Install Node.js](https://nodejs.org/) (for the Tauri frontend)
 3.  **System Dependencies (Linux)**:
     ```bash
-    sudo apt-get install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev
+    sudo apt-get install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
     ```
 
 ## How to Run
