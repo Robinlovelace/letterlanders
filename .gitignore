@@ -9,6 +9,8 @@ node_modules/
 
 # Assets (if generated)
 assets/sounds/
+app/static/sounds/
+**/*.wav
 
 
 # IDEs
