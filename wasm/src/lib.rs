@@ -1,6 +1,5 @@
 use letterlanders_core::{GameEngine, GameSettings, GameStatus, GameVariant, SoundEvent};
 use serde::{Deserialize, Serialize};
-use serde_json;
 use std::sync::Mutex;
 use wasm_bindgen::prelude::*;
 
@@ -22,6 +21,12 @@ impl FrontendState {
             status: engine.status.clone(),
             session: engine.session.clone(),
         }
+    }
+}
+
+impl Default for WasmGameEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
