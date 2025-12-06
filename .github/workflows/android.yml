@@ -40,10 +40,17 @@ jobs:
         working-directory: app
         run: npm install
 
-      - name: Download Assets
+      - name: Download Sound Assets
         run: |
-          chmod +x download_assets.sh
-          ./download_assets.sh
+          mkdir -p app/static/sounds/prompts
+          # Download all WAV files from the release
+          gh release download v0.0.2 --pattern "*.wav" --dir app/static/sounds/prompts
+          # Move core sounds to parent directory
+          mv app/static/sounds/prompts/success.wav app/static/sounds/
+          mv app/static/sounds/prompts/failure.wav app/static/sounds/
+          mv app/static/sounds/prompts/complete.wav app/static/sounds/
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Initialize Android Project
         working-directory: app

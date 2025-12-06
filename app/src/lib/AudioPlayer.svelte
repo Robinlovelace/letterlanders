@@ -1,12 +1,38 @@
 <script lang="ts">
     import { game } from "./game-store.svelte";
-    import { resolveResource } from '@tauri-apps/api/path';
-    import { convertFileSrc } from '@tauri-apps/api/core';
+
+    // Track if user has interacted (for autoplay policy)
+    let userHasInteracted = $state(false);
+    
+    // Queue sounds until user interacts
+    let soundQueue: any[] = $state([]);
+    
+    // Enable audio on first click anywhere
+    function enableAudio() {
+        if (!userHasInteracted) {
+            userHasInteracted = true;
+            // Play any queued sounds
+            for (const sound of soundQueue) {
+                playSound(sound);
+            }
+            soundQueue = [];
+        }
+    }
+    
+    // Listen for clicks globally
+    if (typeof window !== 'undefined') {
+        window.addEventListener('click', enableAudio, { once: true });
+        window.addEventListener('keydown', enableAudio, { once: true });
+    }
 
     // We need to react to sound events
     $effect(() => {
         if (game.lastSound) {
-            playSound(game.lastSound);
+            if (userHasInteracted) {
+                playSound(game.lastSound);
+            } else {
+                soundQueue = [...soundQueue, game.lastSound];
+            }
             game.lastSound = null; // Clear it so we don't play it again
         }
     });
@@ -23,17 +49,10 @@
 
         if (filename) {
             try {
-                // In Tauri v2, we use the asset protocol.
-                // For local dev, we can put assets in 'public' or handle them via Rust.
-                // Since we put sounds in `assets/sounds` which is outside `app`, 
-                // we might need to configure Tauri to serve them or copy them to `app/public`.
-                // For now, let's assume we need to fetch them properly.
-                
-                // Quick fix: Copy sounds to app/public/sounds for the webview to access easily
                 const audio = new Audio(`/sounds/${filename}`);
                 await audio.play();
             } catch (e) {
-                console.error("Failed to play audio", e);
+                console.error("Failed to play audio:", e);
             }
         }
     }

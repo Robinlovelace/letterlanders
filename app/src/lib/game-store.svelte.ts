@@ -126,7 +126,7 @@ class GameStore {
                 this.lastSound = sound;
             }
         } catch (e) {
-            console.error("Sound error", e);
+            // Silently ignore - sound polling errors are not critical
         }
     }
 

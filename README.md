@@ -42,6 +42,15 @@ The Tauri app provides the rich visual experience.
 ```bash
 cd app
 npm install
+
+# Download sound assets (required for audio)
+# Option 1: Using GitHub CLI (downloads from latest release)
+mkdir -p static/sounds/prompts
+gh release download --repo robinlovelace/letterlanders --pattern "*.wav" --dir static/sounds/prompts
+
+# Option 2: Copy from assets folder (if available locally)
+cp -r ../assets/sounds static/
+
 npm run tauri dev
 ```
 
