@@ -117,7 +117,10 @@ jobs:
             exit 0;
           fi
           mkdir -p app/src-tauri/gen/android/app
-          echo "$ANDROID_KEYSTORE" | base64 --decode > app/src-tauri/gen/android/app/release-keystore.jks
+          if ! echo "$ANDROID_KEYSTORE" | base64 -di > app/src-tauri/gen/android/app/release-keystore.jks; then
+            echo "ANDROID_KEYSTORE is not valid base64. Re-create it with: base64 -w0 release-keystore.jks";
+            exit 1;
+          fi
           chmod 600 app/src-tauri/gen/android/app/release-keystore.jks
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
