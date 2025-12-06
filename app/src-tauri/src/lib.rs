@@ -1,31 +1,101 @@
-use letterlanders_core::{GameEngine, GameVariant};
+use letterlanders_core::{GameEngine, GameStatus, GameVariant, SoundEvent, SessionState};
 use std::sync::Mutex;
 use tauri::State;
+use serde::Serialize;
 
 struct AppState {
     engine: Mutex<GameEngine>,
 }
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+#[derive(Serialize)]
+struct FrontendState {
+    status: GameStatus,
+    session: Option<SessionState>,
 }
 
 #[tauri::command]
-fn start_new_game(state: State<AppState>) -> String {
+fn get_game_state(state: State<AppState>) -> FrontendState {
+    let engine = state.engine.lock().unwrap();
+    FrontendState {
+        status: engine.status.clone(),
+        session: engine.session.clone(),
+    }
+}
+
+#[tauri::command]
+fn start_new_game(state: State<AppState>, variant_str: String) -> FrontendState {
     let mut engine = state.engine.lock().unwrap();
-    engine.start_game(GameVariant::Numbers);
-    // Return a debug string for now
-    format!("Game Started! Status: {:?}, Target: {:?}", engine.status, engine.session.as_ref().map(|s| s.target))
+    let variant = match variant_str.as_str() {
+        "Letters" => GameVariant::Letters,
+        _ => GameVariant::Numbers,
+    };
+    engine.start_game(variant);
+    FrontendState {
+        status: engine.status.clone(),
+        session: engine.session.clone(),
+    }
+}
+
+#[tauri::command]
+fn submit_answer(state: State<AppState>, answer: char) -> FrontendState {
+    let mut engine = state.engine.lock().unwrap();
+    engine.submit_answer(answer);
+    FrontendState {
+        status: engine.status.clone(),
+        session: engine.session.clone(),
+    }
+}
+
+#[tauri::command]
+fn next_level(state: State<AppState>) -> FrontendState {
+    let mut engine = state.engine.lock().unwrap();
+    match engine.status {
+        GameStatus::LevelComplete { .. } => engine.advance_to_next_level_or_retry(),
+        GameStatus::Feedback { .. } => engine.next_level(),
+        _ => {}
+    }
+    FrontendState {
+        status: engine.status.clone(),
+        session: engine.session.clone(),
+    }
+}
+
+#[tauri::command]
+fn consume_sound(state: State<AppState>) -> Option<SoundEvent> {
+    let mut engine = state.engine.lock().unwrap();
+    let sound = engine.consume_sound();
+    if sound == SoundEvent::None {
+        None
+    } else {
+        Some(sound)
+    }
+}
+
+// Reset to menu
+#[tauri::command]
+fn reset_game(state: State<AppState>) -> FrontendState {
+    let mut engine = state.engine.lock().unwrap();
+    engine.status = GameStatus::Menu;
+    engine.session = None;
+    FrontendState {
+        status: engine.status.clone(),
+        session: engine.session.clone(),
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState { engine: Mutex::new(GameEngine::new()) }) // new() uses default settings
-        .invoke_handler(tauri::generate_handler![greet, start_new_game])
+        .manage(AppState { engine: Mutex::new(GameEngine::new()) })
+        .invoke_handler(tauri::generate_handler![
+            get_game_state, 
+            start_new_game, 
+            submit_answer, 
+            next_level, 
+            consume_sound,
+            reset_game
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
