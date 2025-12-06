@@ -1,0 +1,66 @@
+name: Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install Frontend Dependencies
+        working-directory: app
+        run: npm install
+
+      - name: Download Assets
+        run: |
+          chmod +x download_assets.sh
+          ./download_assets.sh
+
+      - name: Initialize Android Project
+        working-directory: app
+        # We assume the environment is set up correctly so init works without prompts
+        run: npm run tauri android init
+
+      - name: Build Android APK
+        working-directory: app
+        # This produces a universal APK by default in some versions, or splits.
+        # We'll try to find the universal one.
+        run: npm run tauri android build
+
+      - name: List Build Outputs (Debug)
+        run: find app/src-tauri/gen/android/app/build/outputs/apk -name "*.apk"
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: letterlanders-android-apk
+          path: app/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
