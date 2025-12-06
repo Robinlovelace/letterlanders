@@ -19,16 +19,23 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(45deg, #FFD700, #FFA500);
+        background: rgba(255, 215, 0, 0.1); /* Subtle gold tint */
         color: #fff;
     }
 
     .content {
         text-align: center;
-        background: rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, rgba(255, 215, 0, 0.9), rgba(255, 165, 0, 0.9)); /* Gold/Orange gradient panel */
         padding: 4rem;
         border-radius: 2rem;
         backdrop-filter: blur(10px);
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 
     h1 {

@@ -69,16 +69,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0,0,0,0.8);
+        background: transparent;
         color: white;
     }
 
     .panel {
-        background: #333;
+        background: rgba(16, 30, 60, 0.95);
+        border: 2px solid #4488ff;
         padding: 2rem;
         border-radius: 1rem;
         width: 400px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0 20px rgba(68, 136, 255, 0.2);
     }
 
     h1 {

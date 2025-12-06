@@ -11,6 +11,7 @@
     let status = $derived(game.state.status);
 </script>
 
+<div class="starfield"></div>
 <AudioPlayer />
 
 {#if status === "Menu"}
@@ -37,6 +38,29 @@
         margin: 0;
         font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
         overflow: hidden;
+        background-color: #0b0d17;
+        color: white;
+    }
+
+    .starfield {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: 
+            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+        background-size: 550px 550px, 350px 350px, 250px 250px;
+        background-position: 0 0, 40px 60px, 130px 270px;
+        animation: backgroundMove 60s linear infinite;
+    }
+
+    @keyframes backgroundMove {
+        from { background-position: 0 0, 40px 60px, 130px 270px; }
+        to { background-position: 550px 550px, 390px 410px, 680px 820px; }
     }
     
     .fallback {
@@ -46,6 +70,6 @@
         justify-content: center;
         height: 100vh;
         color: white;
-        background: #333;
+        background: rgba(0,0,0,0.5);
     }
 </style>

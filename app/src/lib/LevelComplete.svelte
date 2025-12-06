@@ -29,7 +29,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0,0,0,0.9);
+        background: rgba(0,0,0,0.85); /* Slightly more transparent */
         z-index: 90;
     }
 
