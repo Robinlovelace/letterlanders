@@ -1,4 +1,4 @@
-use crate::settings::GameSettings;
+'''use crate::settings::GameSettings;
 use crate::state::{GameStatus, GameVariant, SessionState, SoundEvent};
 use rand::seq::SliceRandom;
 
@@ -80,7 +80,8 @@ impl GameEngine {
         session.level_time_limit = time_limit;
         session.level_elapsed_time = 0; // Reset timer for new question/level
 
-        let pool = session.variant.char_pool();
+        let mut pool = session.variant.char_pool();
+        pool.shuffle(&mut rng); // Shuffle the pool to ensure random questions
         let target = *pool.choose(&mut rng).unwrap();
 
         // Generate distinct options (including target)
@@ -234,3 +235,4 @@ impl GameEngine {
         std::mem::take(&mut self.last_sound)
     }
 }
+''
