@@ -6,14 +6,25 @@ pub enum GameVariant {
     Letters,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum SoundEvent {
+    #[default]
     None,
     PlaySuccess,
     PlayFailure,
     SayPrompt(char),
     GameStart,
     LevelComplete,
+}
+
+impl GameVariant {
+    /// Returns the character pool for this game variant
+    pub fn char_pool(&self) -> Vec<char> {
+        match self {
+            GameVariant::Numbers => ('1'..='9').collect(),
+            GameVariant::Letters => ('A'..='Z').collect(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

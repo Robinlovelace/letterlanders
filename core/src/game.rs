@@ -80,18 +80,8 @@ impl GameEngine {
         session.level_time_limit = time_limit;
         session.level_elapsed_time = 0; // Reset timer for new question/level
 
-        let (target, pool) = match session.variant {
-            GameVariant::Numbers => {
-                let pool: Vec<char> = ('1'..='9').collect();
-                let target = *pool.choose(&mut rng).unwrap();
-                (target, pool)
-            }
-            GameVariant::Letters => {
-                let pool: Vec<char> = ('A'..='Z').collect();
-                let target = *pool.choose(&mut rng).unwrap();
-                (target, pool)
-            }
-        };
+        let pool = session.variant.char_pool();
+        let target = *pool.choose(&mut rng).unwrap();
 
         // Generate distinct options (including target)
         let mut options = vec![target];
@@ -232,7 +222,7 @@ impl GameEngine {
             } else {
                 self.status = GameStatus::Feedback {
                     success: false,
-                    message: format!("Oops! That was {}. Try again!", input).to_string(),
+                    message: format!("Oops! That was {}. Try again!", input),
                 };
                 self.last_sound = SoundEvent::PlayFailure;
             }
@@ -241,8 +231,6 @@ impl GameEngine {
 
     // Consumes the last sound event (so it doesn't loop)
     pub fn consume_sound(&mut self) -> SoundEvent {
-        let sound = self.last_sound.clone();
-        self.last_sound = SoundEvent::None;
-        sound
+        std::mem::take(&mut self.last_sound)
     }
 }

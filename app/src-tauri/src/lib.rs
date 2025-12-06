@@ -1,4 +1,6 @@
-use letterlanders_core::{GameEngine, GameStatus, GameVariant, SessionState, SoundEvent, GameSettings};
+use letterlanders_core::{
+    GameEngine, GameSettings, GameStatus, GameVariant, SessionState, SoundEvent,
+};
 use serde::Serialize;
 use std::sync::Mutex;
 use tauri::State;
@@ -105,7 +107,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             engine: Mutex::new(GameEngine::new_with_settings(
-                GameSettings::load_from_file("settings.json").unwrap_or_default()
+                GameSettings::load_from_file("settings.json").unwrap_or_default(),
             )),
         })
         .invoke_handler(tauri::generate_handler![
