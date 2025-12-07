@@ -17,13 +17,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design decisions.
 1.  **Rust**: [Install Rust](https://www.rust-lang.org/tools/install)
 2.  **Node.js**: [Install Node.js](https://nodejs.org/) (for the Tauri frontend)
 3.  **System Dependencies (Linux)**:
-    ```bash
-    sudo apt-get install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
-    ```
+
+```bash
+sudo apt-get install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
+```
 
 ## How to Run
 
 ### 1. Terminal Game (TUI)
+
 The TUI is the fastest way to test game logic and play in a text-based environment.
 
 ```bash
@@ -37,6 +39,7 @@ cargo run -p letterlanders-tui
 *   `Esc`: Quit
 
 ### 2. Graphical App (Desktop/Web)
+
 The Tauri app provides the rich visual experience.
 
 ```bash
@@ -57,9 +60,16 @@ npm run tauri dev
 ## Android Signing Setup
 
 1. Initialize the Android project once: `cd app && npm run tauri android init`.
-2. Generate a private keystore locally (Git-ignored):
-    - Edit `.create-keystore.sh` defaults if needed, then run `chmod +x .create-keystore.sh && ./ .create-keystore.sh`.
-    - The script writes `app/src-tauri/gen/android/app/release-keystore.jks` to match the CI workflow.
+2. Generate a private keystore locally (git-ignored):
+
+Edit `.create-keystore.sh` defaults if needed, then run:
+
+```bash
+chmod +x .create-keystore.sh
+./.create-keystore.sh
+```
+
+The script writes `app/src-tauri/gen/android/app/release-keystore.jks` to match the CI workflow.
 3. Add GitHub repository secrets for the workflow:
     - `ANDROID_KEYSTORE`: `base64 -w0 app/src-tauri/gen/android/app/release-keystore.jks`
     - `ANDROID_KEYSTORE_PASSWORD`: the store password you chose

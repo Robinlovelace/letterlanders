@@ -7,7 +7,7 @@
     let session = $derived(game.state.session);
     let status = $derived(game.state.status);
 
-    let rocketState = $derived.by(() => {
+    let rocketState: "idle" | "success" | "failure" = $derived.by(() => {
         if (typeof status === 'object' && 'Feedback' in status) {
             return status.Feedback.success ? 'success' : 'failure';
         }

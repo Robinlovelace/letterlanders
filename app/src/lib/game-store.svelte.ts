@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { getBackend, type IBackendAdapter } from "./backend";
 
 // Define types locally matching Rust types
 export type GameVariant = "Numbers" | "Letters";
@@ -45,7 +45,7 @@ export interface FrontendState {
     session: SessionState | null;
 }
 
-// Svelte 5 Runes Store
+// Svelte 5 Runes Store with Backend Adapter Pattern
 class GameStore {
     state = $state<FrontendState>({ status: "Menu", session: null });
     settings = $state<GameSettings>({
@@ -56,12 +56,32 @@ class GameStore {
     });
     lastSound = $state<SoundEvent | null>(null);
     feedbackTimer: number | null = null;
+    
+    // Backend adapter - initialized lazily
+    private backendPromise: Promise<IBackendAdapter>;
+    private backend: IBackendAdapter | null = null;
 
     constructor() {
-        this.syncState();
-        this.loadSettings();
-        // Poll for sound every 100ms
-        setInterval(() => this.checkSound(), 100);
+        // Initialize backend adapter (Tauri or WASM based on environment)
+        this.backendPromise = getBackend();
+        this.init();
+    }
+
+    private async init() {
+        try {
+            this.backend = await this.backendPromise;
+            await this.syncState();
+            await this.loadSettings();
+            // Poll for sound every 100ms
+            setInterval(() => this.checkSound(), 100);
+        } catch (e) {
+            console.error("Failed to initialize backend", e);
+        }
+    }
+
+    private async getBackendOrWait(): Promise<IBackendAdapter> {
+        if (this.backend) return this.backend;
+        return this.backendPromise;
     }
 
     // Centralized method to handle state updates and side effects (like timers)
@@ -89,7 +109,8 @@ class GameStore {
 
     async syncState() {
         try {
-            const newState = await invoke<FrontendState>("get_game_state");
+            const backend = await this.getBackendOrWait();
+            const newState = await backend.getGameState();
             this.processState(newState);
         } catch (e) {
             console.error("Failed to sync state", e);
@@ -98,7 +119,8 @@ class GameStore {
 
     async loadSettings() {
         try {
-            this.settings = await invoke<GameSettings>("get_settings");
+            const backend = await this.getBackendOrWait();
+            this.settings = await backend.getSettings();
         } catch (e) {
             console.error("Failed to load settings", e);
         }
@@ -106,8 +128,9 @@ class GameStore {
 
     async saveSettings(newSettings: GameSettings) {
         try {
+            const backend = await this.getBackendOrWait();
             this.settings = newSettings;
-            const newState = await invoke<FrontendState>("update_settings", { settings: newSettings });
+            const newState = await backend.updateSettings(newSettings);
             this.processState(newState);
         } catch (e) {
             console.error("Failed to save settings", e);
@@ -115,13 +138,15 @@ class GameStore {
     }
 
     async goToSettings() {
-        const newState = await invoke<FrontendState>("go_to_settings");
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.goToSettings();
         this.processState(newState);
     }
 
     async checkSound() {
         try {
-            const sound = await invoke<SoundEvent | null>("consume_sound");
+            const backend = await this.getBackendOrWait();
+            const sound = await backend.consumeSound();
             if (sound) {
                 this.lastSound = sound;
             }
@@ -131,22 +156,26 @@ class GameStore {
     }
 
     async startGame(variant: GameVariant) {
-        const newState = await invoke<FrontendState>("start_new_game", { variantStr: variant });
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.startNewGame(variant);
         this.processState(newState);
     }
 
     async submitAnswer(answer: string) {
-        const newState = await invoke<FrontendState>("submit_answer", { answer: answer.charAt(0) });
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.submitAnswer(answer);
         this.processState(newState);
     }
 
     async nextLevel() {
-        const newState = await invoke<FrontendState>("next_level");
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.nextLevel();
         this.processState(newState);
     }
 
     async reset() {
-        const newState = await invoke<FrontendState>("reset_game");
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.resetGame();
         this.processState(newState);
     }
 }

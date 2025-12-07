@@ -36,6 +36,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
 
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Build WASM module
+        run: |
+          cd wasm
+          wasm-pack build --target web --out-dir ../app/src/lib/wasm-pkg
+
       - name: Install Frontend Dependencies
         working-directory: app
         run: npm install
@@ -103,6 +111,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Build WASM module
+        run: |
+          cd wasm
+          wasm-pack build --target web --out-dir ../app/src/lib/wasm-pkg
 
       - name: Install Frontend Dependencies
         working-directory: app
