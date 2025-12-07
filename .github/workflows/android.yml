@@ -179,17 +179,17 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Build Release App Bundle (signed)
+      - name: Build Release APK (signed)
         working-directory: app
         env:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri android build -- --aab true
+        run: npm run tauri android build -- --apk
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-bundle
-          path: app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
+          name: android-release-apk
+          path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
 
       # Optional: Deploy to Google Play (internal track)
       # - name: Deploy to Google Play
