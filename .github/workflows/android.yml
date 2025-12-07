@@ -168,7 +168,7 @@ jobs:
             exit 0;
           fi
           printf '%s\n' \
-            "storeFile=app/release-keystore.jks" \
+            "storeFile=release-keystore.jks" \
             "storePassword=$ANDROID_KEYSTORE_PASSWORD" \
             "keyAlias=$ANDROID_KEY_ALIAS" \
             "keyPassword=$ANDROID_KEY_PASSWORD" \
