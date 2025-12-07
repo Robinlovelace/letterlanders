@@ -184,6 +184,8 @@ jobs:
             "keyAlias=$ANDROID_KEY_ALIAS" \
             "keyPassword=$ANDROID_KEY_PASSWORD" \
             > app/src-tauri/gen/android/keystore.properties
+          # Copy to app module directory as well to be safe
+          cp app/src-tauri/gen/android/keystore.properties app/src-tauri/gen/android/app/keystore.properties
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -196,25 +198,41 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: npm run tauri android build -- --apk true --target aarch64
 
-      - name: Upload Release Artifact
+      - name: Rename Signed APK
+        working-directory: app/src-tauri/gen/android/app/build/outputs/apk
+        run: |
+          find . -name "*-release.apk" -exec mv {} {}-signed.apk \; || true
+          find . -name "*-universal-release.apk" -exec mv {} {}-signed.apk \; || true
+
+      - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-apk
+          name: android-release-apks
           path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
 
-      - name: Upload APK to Latest Release
+      - name: Upload APKs to Latest Release
         working-directory: app/src-tauri/gen/android/app/build/outputs/apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find the universal (or first) signed apk
-          APK_FILE=$(find . -name "*-universal-release.apk" -o -name "*-release.apk" | head -n 1)
-          if [ -f "$APK_FILE" ]; then
-             echo "Uploading $APK_FILE to latest release..."
-             gh release upload --clobber $(gh release list --limit 1 --json tagName --jq '.[0].tagName') "$APK_FILE"
+          # Upload both signed and unsigned
+          SIGNED_APK=$(find . -name "*signed.apk" | head -n 1)
+          UNSIGNED_APK=$(find . -name "*-unsigned.apk" | head -n 1)
+          
+          TAG_NAME=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          
+          if [ -f "$SIGNED_APK" ]; then
+             echo "Uploading Signed APK: $SIGNED_APK"
+             gh release upload --clobber "$TAG_NAME" "$SIGNED_APK"
           else
-             echo "No release APK found to upload."
-             find . -name "*.apk"
+             echo "WARNING: No signed APK found."
+          fi
+          
+          if [ -f "$UNSIGNED_APK" ]; then
+             echo "Uploading Unsigned APK: $UNSIGNED_APK"
+             gh release upload --clobber "$TAG_NAME" "$UNSIGNED_APK"
+          else
+              echo "No unsigned APK found."
           fi
 
       # Optional: Deploy to Google Play (internal track)
