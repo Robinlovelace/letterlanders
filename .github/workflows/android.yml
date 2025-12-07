@@ -189,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-release-bundle
-          path: app/src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
+          path: app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
 
       # Optional: Deploy to Google Play (internal track)
       # - name: Deploy to Google Play
