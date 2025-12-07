@@ -29,7 +29,25 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          # Optimized for CI - only aarch64
+          targets: aarch64-linux-android
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+           workspaces: |
+             app/src-tauri
+             core
+             wasm
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+           workspaces: |
+             app/src-tauri
+             core
+             wasm
 
       - name: Install System Dependencies
         run: |
@@ -72,7 +90,7 @@ jobs:
 
       - name: Build Android APK (debug)
         working-directory: app
-        run: npm run tauri android build
+        run: npm run tauri android build -- --target aarch64
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
