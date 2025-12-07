@@ -1,10 +1,12 @@
 <script lang="ts">
     export let state: "idle" | "success" | "failure" = "idle";
+    export let level: number = 1;
 </script>
 
-<div class="rocket-container {state}">
-    <svg viewBox="0 0 100 100" class="rocket" overflow="visible">
-        <defs>
+<div class="rocket-positioner" style="transform: translateY({-(level - 1) * 5}vh)">
+    <div class="rocket-container {state}">
+        <svg viewBox="0 0 100 100" class="rocket" overflow="visible">
+            <defs>
             <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" style="stop-color:#f5f5f5" />
                 <stop offset="50%" style="stop-color:#ffffff" />
@@ -49,8 +51,14 @@
         <circle cx="50" cy="70" r="1" fill="#bdbdbd"/>
     </svg>
 </div>
+</div>
 
 <style>
+    .rocket-positioner {
+        transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        will-change: transform;
+    }
+
     .rocket-container {
         width: 150px;
         height: 150px;
@@ -93,7 +101,7 @@
         animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
     }
 
-    @keyframes shake {
+        @keyframes shake {
         10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); }
         20%, 80% { transform: translate3d(4px, 0, 0) rotate(2deg); }
         30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotate(-4deg); }

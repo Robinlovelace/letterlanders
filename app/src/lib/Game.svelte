@@ -40,7 +40,7 @@
         </div>
 
         <div class="challenge-area">
-            <Rocket state={rocketState} />
+            <Rocket state={rocketState} level={session.current_level} />
         </div>
 
         <div class="options-grid">
