@@ -191,6 +191,21 @@ jobs:
           name: android-release-apk
           path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
 
+      - name: Upload APK to Latest Release
+        working-directory: app/src-tauri/gen/android/app/build/outputs/apk
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find the universal (or first) signed apk
+          APK_FILE=$(find . -name "*-universal-release.apk" -o -name "*-release.apk" | head -n 1)
+          if [ -f "$APK_FILE" ]; then
+             echo "Uploading $APK_FILE to latest release..."
+             gh release upload --clobber $(gh release list --limit 1 --json tagName --jq '.[0].tagName') "$APK_FILE"
+          else
+             echo "No release APK found to upload."
+             find . -name "*.apk"
+          fi
+
       # Optional: Deploy to Google Play (internal track)
       # - name: Deploy to Google Play
       #   uses: r0adkll/upload-google-play@v1
