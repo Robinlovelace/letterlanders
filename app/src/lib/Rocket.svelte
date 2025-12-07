@@ -4,31 +4,49 @@
 
 <div class="rocket-container {state}">
     <svg viewBox="0 0 100 100" class="rocket" overflow="visible">
-        <!-- Flames (Animated) -->
-        <g class="flames">
-            <path d="M30 80 Q50 110 70 80" fill="#ff6600" opacity="0.8">
-                <animate attributeName="d" values="M35 80 Q50 100 65 80; M30 80 Q50 120 70 80; M35 80 Q50 100 65 80" dur="0.2s" repeatCount="indefinite" />
+        <defs>
+            <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#f5f5f5" />
+                <stop offset="50%" style="stop-color:#ffffff" />
+                <stop offset="100%" style="stop-color:#e0e0e0" />
+            </linearGradient>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="1" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+            </filter>
+        </defs>
+
+        <!-- Flames -->
+        <g class="flames" transform="translate(0, -2)">
+            <path d="M40 82 Q50 110 60 82" fill="#ff9800" opacity="0.9">
+                <animate attributeName="d" values="M40 82 Q50 105 60 82; M35 82 Q50 125 65 82; M40 82 Q50 105 60 82" dur="0.15s" repeatCount="indefinite" />
             </path>
-            <path d="M40 80 Q50 100 60 80" fill="#ffff00" opacity="0.9">
-                <animate attributeName="d" values="M42 80 Q50 95 58 80; M40 80 Q50 105 60 80; M42 80 Q50 95 58 80" dur="0.2s" repeatCount="indefinite" />
+            <path d="M45 82 Q50 100 55 82" fill="#ffeb3b" opacity="0.9">
+                <animate attributeName="d" values="M45 82 Q50 92 55 82; M43 82 Q50 105 57 82; M45 82 Q50 92 55 82" dur="0.15s" repeatCount="indefinite" />
             </path>
         </g>
-        
+
         <!-- Fins -->
-        <path d="M20 80 L20 60 L30 50 L30 80 Z" fill="#cc3300"/>
-        <path d="M80 80 L80 60 L70 50 L70 80 Z" fill="#cc3300"/>
-        <path d="M45 80 L55 80 L55 50 L45 50 Z" fill="#cc3300"/>
+        <!-- Left -->
+        <path d="M32 75 L15 95 L35 85 Z" fill="#d32f2f" stroke="#b71c1c" stroke-width="1" stroke-linejoin="round"/>
+        <!-- Right -->
+        <path d="M68 75 L85 95 L65 85 Z" fill="#d32f2f" stroke="#b71c1c" stroke-width="1" stroke-linejoin="round"/>
+        <!-- Center (Back) -->
+        <path d="M50 80 L50 92" stroke="#b71c1c" stroke-width="4" stroke-linecap="round"/>
 
         <!-- Body -->
-        <ellipse cx="50" cy="50" rx="25" ry="40" fill="#eeeeee" stroke="#999" stroke-width="2"/>
-        
-        <!-- Window -->
-        <circle cx="50" cy="40" r="12" fill="#66ccff" stroke="#333" stroke-width="2"/>
-        <circle cx="50" cy="40" r="10" fill="#99ddff" opacity="0.5"/>
-        <circle cx="54" cy="36" r="3" fill="white" opacity="0.8"/>
+        <path d="M30 80 Q25 40 50 5 Q75 40 70 80 Z" fill="url(#bodyGradient)" stroke="#9e9e9e" stroke-width="1" filter="url(#shadow)"/>
 
-        <!-- Nose Cone -->
-        <path d="M25 50 Q50 0 75 50" fill="#ff3300" />
+        <!-- Nose Cone (Red tip) -->
+        <path d="M36.5 35 Q50 5 63.5 35 Q50 40 36.5 35 Z" fill="#d32f2f" />
+
+        <!-- Window -->
+        <circle cx="50" cy="50" r="12" fill="#29b6f6" stroke="#37474f" stroke-width="2.5"/>
+        <!-- Glare -->
+        <ellipse cx="54" cy="46" rx="3" ry="2" fill="white" opacity="0.7" transform="rotate(-45 54 46)"/>
+        
+        <!-- Rivets/Seams -->
+        <circle cx="50" cy="25" r="1" fill="#bdbdbd"/>
+        <circle cx="50" cy="70" r="1" fill="#bdbdbd"/>
     </svg>
 </div>
 
