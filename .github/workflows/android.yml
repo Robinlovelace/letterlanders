@@ -105,7 +105,18 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          # Only building for modern Android devices (aarch64) to speed up CI.
+          # Uncomment the line above and remove the one below to support older devices and emulators.
+          targets: aarch64-linux-android
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+           workspaces: |
+             app/src-tauri
+             core
+             wasm
 
       - name: Install System Dependencies
         run: |
@@ -183,7 +194,7 @@ jobs:
         working-directory: app
         env:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri android build -- --apk true
+        run: npm run tauri android build -- --apk true --target aarch64
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
