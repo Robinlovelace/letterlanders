@@ -183,7 +183,7 @@ jobs:
         working-directory: app
         env:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri android build -- --apk
+        run: npm run tauri android build -- --apk true
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
