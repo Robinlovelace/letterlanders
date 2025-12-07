@@ -5,6 +5,9 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   debug-apk:
     name: Build Debug APK (unsigned)
@@ -30,17 +33,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-          # Optimized for CI - only aarch64
-          targets: aarch64-linux-android
-
+          # Optimized for CI - only aarch64 + wasm32 for wasm-pack
+          targets: aarch64-linux-android,wasm32-unknown-unknown
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
         with:
-           workspaces: |
-             app/src-tauri
-             core
-             wasm
+          shared-key: android-rust-cache
+          workspaces: |
+            app/src-tauri
+            core
+            wasm
 
       - name: Install System Dependencies
         run: |
@@ -117,17 +120,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-          # Only building for modern Android devices (aarch64) to speed up CI.
-          # Uncomment the line above and remove the one below to support older devices and emulators.
-          targets: aarch64-linux-android
+          # Optimized for CI - only aarch64 + wasm32 for wasm-pack
+          targets: aarch64-linux-android,wasm32-unknown-unknown
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
         with:
-           workspaces: |
-             app/src-tauri
-             core
-             wasm
+          shared-key: android-rust-cache
+          workspaces: |
+            app/src-tauri
+            core
+            wasm
 
       - name: Install System Dependencies
         run: |
@@ -209,11 +212,17 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: npm run tauri android build -- --apk true --target aarch64
 
-      - name: Rename Signed APK
+      - name: Rename APKs for clarity
         working-directory: app/src-tauri/gen/android/app/build/outputs/apk
         run: |
-          find . -name "*-release.apk" -exec mv {} {}-signed.apk \; || true
-          find . -name "*-universal-release.apk" -exec mv {} {}-signed.apk \; || true
+          # Rename release APKs to include 'signed' in name for clarity
+          for f in $(find . -name "*-release.apk" ! -name "*-unsigned.apk"); do
+            newname=$(echo "$f" | sed 's/-release\.apk/-release-signed.apk/')
+            mv "$f" "$newname" 2>/dev/null || true
+          done
+          # List all APKs found
+          echo "APKs found:"
+          find . -name "*.apk"
 
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
