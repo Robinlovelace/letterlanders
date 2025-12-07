@@ -127,9 +127,9 @@
     }
 
     .option-card {
-        width: 90px;
-        height: 90px;
-        font-size: 3rem;
+        width: 110px;
+        height: 110px;
+        font-size: 3.5rem;
         background: linear-gradient(135deg, #2b3a55 0%, #1a253a 100%);
         border: 2px solid #5588aa;
         border-radius: 50%; /* Planet shape */
@@ -157,9 +157,9 @@
     /* Mobile optimization */
     @media (max-width: 600px) {
         .option-card {
-            width: 75px;
-            height: 75px;
-            font-size: 2.2rem;
+            width: 90px;
+            height: 90px;
+            font-size: 2.8rem;
         }
     }
 </style>
