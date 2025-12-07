@@ -33,13 +33,6 @@ jobs:
           # Optimized for CI - only aarch64
           targets: aarch64-linux-android
 
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-           workspaces: |
-             app/src-tauri
-             core
-             wasm
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
