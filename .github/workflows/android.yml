@@ -110,17 +110,15 @@ jobs:
           # Patch build.gradle.kts to add signing configuration
           BUILD_GRADLE="app/src-tauri/gen/android/app/build.gradle.kts"
           
-          # Add imports at beginning of file
-          sed -i '1i import java.io.FileInputStream\nimport java.util.Properties' "$BUILD_GRADLE"
-          
-          # Create signing config snippet (no leading whitespace)
+          # Create signing config snippet using fully qualified class names to avoid import conflicts
+          # (Tauri's generated build.gradle.kts may already have conflicting imports)
           cat > /tmp/signing_config.txt << 'SIGNCONF'
           signingConfigs {
               create("release") {
                   val keystorePropertiesFile = rootProject.file("keystore.properties")
-                  val keystoreProperties = Properties()
+                  val keystoreProperties = java.util.Properties()
                   if (keystorePropertiesFile.exists()) {
-                      keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+                      keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
                   }
                   keyAlias = keystoreProperties["keyAlias"] as? String
                   keyPassword = keystoreProperties["password"] as? String
