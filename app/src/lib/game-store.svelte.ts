@@ -11,18 +11,18 @@ export interface GameSettings {
     start_level: number;
 }
 
-export type SoundEvent = 
-    | "None" 
-    | "PlaySuccess" 
-    | "PlayFailure" 
-    | { SayPrompt: string } 
-    | "GameStart" 
+export type SoundEvent =
+    | "None"
+    | "PlaySuccess"
+    | "PlayFailure"
+    | { SayPrompt: string }
+    | "GameStart"
     | "LevelComplete";
 
-export type GameStatus = 
-    | "Menu" 
+export type GameStatus =
+    | "Menu"
     | { Settings: { message: string | null } }
-    | "Playing" 
+    | "Playing"
     | { Feedback: { success: boolean, message: string } }
     | { LevelComplete: { level: number, score: number, passed: boolean } }
     | { SessionComplete: { score: number } };
@@ -56,7 +56,7 @@ class GameStore {
     });
     lastSound = $state<SoundEvent | null>(null);
     feedbackTimer: number | null = null;
-    
+
     // Backend adapter - initialized lazily
     private backendPromise: Promise<IBackendAdapter>;
     private backend: IBackendAdapter | null = null;
@@ -74,6 +74,24 @@ class GameStore {
             await this.loadSettings();
             // Poll for sound every 100ms
             setInterval(() => this.checkSound(), 100);
+
+            // Game Tick Loop (100ms)
+            let lastTime = 0;
+            setInterval(async () => {
+                const now = Date.now();
+                if (lastTime === 0) {
+                    lastTime = now;
+                    return;
+                }
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+
+                // Only tick if playing to avoid unnecessary calls
+                // Although backend handles status check, we save overhead here
+                if (this.state.status === "Playing") {
+                    await this.tick(dt);
+                }
+            }, 100);
         } catch (e) {
             console.error("Failed to initialize backend", e);
         }
@@ -176,6 +194,12 @@ class GameStore {
     async reset() {
         const backend = await this.getBackendOrWait();
         const newState = await backend.resetGame();
+        this.processState(newState);
+    }
+
+    async tick(dt: number) {
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.tick(dt);
         this.processState(newState);
     }
 }

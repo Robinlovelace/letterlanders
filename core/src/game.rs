@@ -46,7 +46,7 @@ impl GameEngine {
             options: vec![],
             selected_index: 0,
             level_time_limit: None,
-            level_elapsed_time: 0,
+            level_elapsed_time: 0.0,
         };
 
         Self::setup_level_properties(&mut session); // Call here to setup level 1 total_questions
@@ -74,11 +74,11 @@ impl GameEngine {
             1 => (2, None),
             2 => (3, None),
             3 => (5, None),
-            _ => (9, Some(5)), // Boss Level: 9 options, 5 seconds!
+            _ => (9, Some(9.0)), // Boss Level: 9 options, 9 seconds!
         };
 
         session.level_time_limit = time_limit;
-        session.level_elapsed_time = 0; // Reset timer for new question/level
+        session.level_elapsed_time = 0.0; // Reset timer for new question/level
 
         let pool = session.variant.char_pool();
         let target = *pool.choose(&mut rng).unwrap();
@@ -126,7 +126,7 @@ impl GameEngine {
                     self.last_sound = if passed {
                         SoundEvent::LevelComplete
                     } else {
-                        SoundEvent::PlayFailure
+                        SoundEvent::None
                     };
                 }
             } else {
@@ -158,7 +158,7 @@ impl GameEngine {
                 // Note: We do NOT reset total_score here, only current level score
                 session.current_question_index = 0;
                 session.score = 0;
-                session.level_elapsed_time = 0;
+                session.level_elapsed_time = 0.0;
                 Self::setup_level_properties(session); // Re-evaluate total_questions
 
                 Self::generate_level_question(session);
@@ -168,7 +168,7 @@ impl GameEngine {
         }
     }
 
-    pub fn tick(&mut self, dt_seconds: u64) {
+    pub fn tick(&mut self, dt_seconds: f64) {
         if let GameStatus::Playing = self.status {
             if let Some(session) = &mut self.session {
                 if let Some(limit) = session.level_time_limit {

@@ -19,6 +19,7 @@ export interface IBackendAdapter {
     nextLevel(): Promise<FrontendState>;
     resetGame(): Promise<FrontendState>;
     consumeSound(): Promise<SoundEvent | null>;
+    tick(dt: number): Promise<FrontendState>;
 }
 
 // WASM Backend - runs Rust code via WebAssembly (used for ALL platforms)
@@ -86,6 +87,11 @@ class WasmBackend implements IBackendAdapter {
         const engine = await this.ensureInitialized();
         const sound = engine.consume_sound();
         return sound === null ? null : (sound as SoundEvent);
+    }
+
+    async tick(dt: number): Promise<FrontendState> {
+        const engine = await this.ensureInitialized();
+        return engine.tick(dt) as FrontendState;
     }
 }
 

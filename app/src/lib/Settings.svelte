@@ -21,15 +21,26 @@
         <div class="setting-group">
             <label>
                 <span>Show Target Visual</span>
-                <input type="checkbox" bind:checked={localSettings.show_target_visual} />
+                <input
+                    type="checkbox"
+                    bind:checked={localSettings.show_target_visual}
+                />
             </label>
         </div>
 
         <div class="setting-group">
             <label>
                 <span>Feedback Duration (s)</span>
-                <input type="range" min="1" max="5" step="1" bind:value={localSettings.feedback_duration_seconds} />
-                <span class="value">{localSettings.feedback_duration_seconds}s</span>
+                <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    bind:value={localSettings.feedback_duration_seconds}
+                />
+                <span class="value"
+                    >{localSettings.feedback_duration_seconds}s</span
+                >
             </label>
         </div>
 
@@ -106,7 +117,8 @@
         gap: 0.5rem;
     }
 
-    select, input[type="range"] {
+    select,
+    input[type="range"] {
         padding: 0.5rem;
         font-size: 1rem;
         border-radius: 0.5rem;

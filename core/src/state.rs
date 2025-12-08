@@ -60,6 +60,6 @@ pub struct SessionState {
     pub options: Vec<char>, // Visual hint options
     #[serde(default)]
     pub selected_index: usize, // For ArrowSelection mode
-    pub level_time_limit: Option<u64>, // Seconds, None if no limit
-    pub level_elapsed_time: u64, // Seconds elapsed in current level
+    pub level_time_limit: Option<f64>, // Seconds, None if no limit
+    pub level_elapsed_time: f64, // Seconds elapsed in current level
 }

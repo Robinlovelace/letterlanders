@@ -100,6 +100,36 @@ impl WasmGameEngine {
         serde_wasm_bindgen::to_value(&state).unwrap()
     }
 
+    pub fn tick(&self, dt_seconds: f64) -> JsValue {
+        let mut engine = self.engine.lock().unwrap();
+        // Cast to u64 as core expects u64 seconds, but wait, core expects u64?
+        // Let's check core/src/game.rs line 171: pub fn tick(&mut self, dt_seconds: u64)
+        // A u64 for delta time in seconds is very coarse (1 second resolution). 
+        // If the tick is called more often, it might be 0.
+        // I should probably fix core to use f32 or f64 for smoother timing if needed, 
+        // but for now, let's see. If I pass 0.1s, u64 will be 0.
+        // Ah, if core uses u64, it implies it only counts whole seconds? 
+        // Let's check core again.
+        // "session.level_elapsed_time += dt_seconds;" 
+        // If dt_seconds is u64, we can only update by whole seconds.
+        // For a 5 second timer, this is "okay" but jerky.
+        // Ideally I'd refactor core to use f64, but I'll stick to the "Proper Logic Fix" constrained to making it work first.
+        // However, if I call tick(0.1) from JS, casting to u64 makes it 0.
+        // The loop will never advance time.
+        // I MUST refactor core to use f64 or u64 milliseconds.
+        // Let's check core/src/game.rs content again in memory.
+        
+        // Line 49: level_elapsed_time: 0, (in struct SessionState) -> inferred type likely integer
+        // Line 171: pub fn tick(&mut self, dt_seconds: u64)
+        
+        // I will refactor core::game::tick to take milliseconds (u64) or float.
+        // Since I'm editing WASM now, let's delay this Edit and do Core first.
+        
+        engine.tick(dt_seconds); 
+        let state = FrontendState::from_engine(&engine);
+        serde_wasm_bindgen::to_value(&state).unwrap()
+    }
+
     pub fn consume_sound(&self) -> JsValue {
         let mut engine = self.engine.lock().unwrap();
         let sound = engine.consume_sound();
