@@ -43,6 +43,11 @@
                     <span class="scrolling-text">BOSS LEVEL!</span>
                 </div>
             {/if}
+            <div class="hud-panel game-controls">
+                <button class="menu-btn" onclick={() => game.reset()}
+                    >MENU</button
+                >
+            </div>
             <div class="hud-panel right">
                 <span class="label">ALTITUDE</span>
                 <span class="value">{Math.round(5000 * (1 - progress))}</span>
@@ -278,5 +283,33 @@
             height: 90px;
             font-size: 2.8rem;
         }
+    }
+
+    .game-controls {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        min-width: auto;
+    }
+
+    .menu-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.7);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .menu-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.5);
     }
 </style>

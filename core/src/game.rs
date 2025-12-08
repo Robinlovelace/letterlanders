@@ -214,9 +214,21 @@ impl GameEngine {
 
             if is_correct {
                 session.score += 1;
+                let message = if input.is_ascii_digit() {
+                    let num = input.to_digit(10).unwrap_or(0);
+                    let parity = if num % 2 == 0 { "an even" } else { "an odd" };
+                    format!("You chose {}, {} number", input, parity)
+                } else if input.is_ascii_alphabetic() {
+                    let lower = input.to_ascii_lowercase();
+                    let pos = lower as u8 - b'a' + 1;
+                    format!("You chose {}, letter number {} in the alphabet", lower, pos)
+                } else {
+                    "Great Job!".to_string()
+                };
+
                 self.status = GameStatus::Feedback {
                     success: true,
-                    message: "Great Job!".to_string(),
+                    message,
                 };
                 self.last_sound = SoundEvent::PlaySuccess;
             } else {

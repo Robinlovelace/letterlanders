@@ -173,29 +173,56 @@
         }
     }
 
-    /* Success (Boss Hit) */
+    /* Success (Boss Hit - DEFEAT SEQUENCE) */
     .success .boss-svg {
-        animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); /* Explosion flash effect */
+        animation: boss-defeat 4s ease-in-out forwards;
     }
 
-    @keyframes shake {
+    @keyframes boss-defeat {
+        0%,
+        40% {
+            /* Phase 1: WOBBLE - Violent shaking */
+            transform: translate3d(-2px, 2px, 0) rotate(-2deg);
+        }
+        5%,
+        35% {
+            transform: translate3d(2px, -2px, 0) rotate(2deg);
+        }
         10%,
-        90% {
-            transform: translate3d(-1px, 0, 0) rotate(-1deg);
+        30% {
+            transform: translate3d(-3px, 0, 0) rotate(-4deg);
         }
-        20%,
-        80% {
-            transform: translate3d(2px, 0, 0) rotate(2deg);
+        15%,
+        25% {
+            transform: translate3d(3px, 0, 0) rotate(4deg);
         }
-        30%,
-        50%,
-        70% {
-            transform: translate3d(-4px, 0, 0) rotate(-4deg);
+        20% {
+            transform: translate3d(0, 0, 0) scale(1.1) rotate(0);
+            filter: hue-rotate(90deg);
         }
-        40%,
+
+        40% {
+            /* Phase 2: PRE-EXPLOSION - Swell and brighten */
+            transform: scale(1.2) rotate(10deg);
+            filter: brightness(1.5) sepia(1);
+            opacity: 1;
+        }
         60% {
-            transform: translate3d(4px, 0, 0) rotate(4deg);
+            /* Phase 3: CRITICAL MASS - Shaking uncontrollably */
+            transform: scale(0.8) rotate(-10deg);
+            filter: brightness(3) invert(1);
+            opacity: 1;
+        }
+        80% {
+            /* Phase 4: EXPLOSION */
+            transform: scale(20);
+            filter: brightness(10) blur(10px);
+            opacity: 0.5;
+        }
+        100% {
+            /* Phase 5: GONE */
+            transform: scale(30);
+            opacity: 0;
         }
     }
 
@@ -224,18 +251,21 @@
 
     /* Continuous Laser Fire (Idle) - Green Dots */
     .idle .laser-beam {
-        /* Reusing SVG circles for small pew-pew shots */
-        animation: laser-pew 1s infinite linear;
+        /* Default animation (overridden by nth-of-type below) */
+        animation: laser-pew-1 1.2s infinite linear;
         transform-box: fill-box;
         transform-origin: center;
         fill: #39ff14; /* Green */
     }
 
+    /* Randomize firing patterns */
     .idle .laser-beam:nth-of-type(1) {
+        animation: laser-pew-1 1.1s infinite linear;
         animation-delay: 0s;
     }
     .idle .laser-beam:nth-of-type(2) {
-        animation-delay: 0.5s;
+        animation: laser-pew-2 1.3s infinite linear;
+        animation-delay: 0.6s;
     }
 
     @keyframes surge {
@@ -250,10 +280,11 @@
         }
     }
 
-    @keyframes laser-pew {
+    /* Direction 1: Down-Right */
+    @keyframes laser-pew-1 {
         0% {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            transform: scale(1) translate(0, 0);
             fill: #fff;
         }
         20% {
@@ -261,7 +292,24 @@
         }
         100% {
             opacity: 0;
-            transform: scale(3) translateY(120px); /* Move down and grow */
+            transform: scale(3) translate(80px, 120px);
+            fill: #00ff00;
+        }
+    }
+
+    /* Direction 2: Down-Left */
+    @keyframes laser-pew-2 {
+        0% {
+            opacity: 1;
+            transform: scale(1) translate(0, 0);
+            fill: #fff;
+        }
+        20% {
+            fill: #39ff14;
+        }
+        100% {
+            opacity: 0;
+            transform: scale(3) translate(-80px, 100px);
             fill: #00ff00;
         }
     }

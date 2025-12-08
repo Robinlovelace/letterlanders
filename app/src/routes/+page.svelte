@@ -47,7 +47,10 @@
     {/if}
 
     {#if typeof status === "object" && "Feedback" in status}
-        <Feedback {...status.Feedback} />
+        <!-- Only show feedback overlay if NOT a successful boss level (to let explosion play) -->
+        {#if !(status.Feedback.success && game.state.session?.current_level >= 4)}
+            <Feedback {...status.Feedback} />
+        {/if}
     {/if}
 
     {#if typeof status === "object" && "LevelComplete" in status}

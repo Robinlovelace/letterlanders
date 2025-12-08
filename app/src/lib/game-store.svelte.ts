@@ -109,7 +109,13 @@ class GameStore {
             if (!this.feedbackTimer) {
                 // Start timer if not already running
                 // Use duration from settings
-                const duration = this.settings.feedback_duration_seconds * 1000;
+                let duration = this.settings.feedback_duration_seconds * 1000;
+
+                // For Boss levels (4+) on success, add extra time for the explosion animation
+                if (newState.session && newState.session.current_level >= 4 && newState.status.Feedback.success) {
+                    duration += 3000; // 3 extra seconds of glory
+                }
+
                 this.feedbackTimer = setTimeout(() => {
                     this.nextLevel();
                     this.feedbackTimer = null;
