@@ -112,23 +112,21 @@ jobs:
           
           # Create signing config snippet using fully qualified class names to avoid import conflicts
           # (Tauri's generated build.gradle.kts may already have conflicting imports)
-          cat > /tmp/signing_config.txt << 'SIGNCONF'
-          signingConfigs {
-              create("release") {
-                  val keystorePropertiesFile = rootProject.file("keystore.properties")
-                  val keystoreProperties = java.util.Properties()
-                  if (keystorePropertiesFile.exists()) {
-                      keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
-                  }
-                  keyAlias = keystoreProperties["keyAlias"] as? String
-                  keyPassword = keystoreProperties["password"] as? String
-                  storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
-                  storePassword = keystoreProperties["storePassword"] as? String
-              }
-          }
-          SIGNCONF
-          # Remove leading whitespace from signing config
-          sed -i 's/^[[:space:]]*//' /tmp/signing_config.txt
+          # Use printf to avoid YAML indentation being captured in heredoc
+          printf '%s\n' \
+            'signingConfigs {' \
+            '    create("release") {' \
+            '        val keystorePropertiesFile = rootProject.file("keystore.properties")' \
+            '        val keystoreProperties = java.util.Properties()' \
+            '        if (keystorePropertiesFile.exists()) {' \
+            '            keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))' \
+            '        }' \
+            '        keyAlias = keystoreProperties["keyAlias"] as? String' \
+            '        keyPassword = keystoreProperties["password"] as? String' \
+            '        storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }' \
+            '        storePassword = keystoreProperties["storePassword"] as? String' \
+            '    }' \
+            '}' > /tmp/signing_config.txt
           
           # Insert signing config before buildTypes using awk
           awk '/buildTypes \{/{while(getline line < "/tmp/signing_config.txt"){print "    " line}} 1' "$BUILD_GRADLE" > "$BUILD_GRADLE.tmp" && mv "$BUILD_GRADLE.tmp" "$BUILD_GRADLE"
