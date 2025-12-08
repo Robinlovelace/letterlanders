@@ -84,19 +84,27 @@ jobs:
           fi
 
       - name: Setup Android Signing
-        if: ${{ secrets.ANDROID_KEYSTORE != '' }}
         run: |
+          if [ -z "$ANDROID_KEYSTORE" ]; then
+            echo "No ANDROID_KEYSTORE secret set; skipping signing."
+            exit 0
+          fi
+          
           # Restore keystore from base64-encoded secret
           echo "$ANDROID_KEYSTORE" | base64 -di > app/src-tauri/gen/android/app/release-keystore.jks
           chmod 600 app/src-tauri/gen/android/app/release-keystore.jks
           
           # Create keystore.properties
-          cat > app/src-tauri/gen/android/keystore.properties << EOF
+          cat > app/src-tauri/gen/android/keystore.properties << 'PROPS'
           storeFile=release-keystore.jks
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyAlias=$ANDROID_KEY_ALIAS
           password=$ANDROID_KEY_PASSWORD
-          EOF
+          PROPS
+          # Substitute actual values
+          sed -i "s|\$ANDROID_KEYSTORE_PASSWORD|$ANDROID_KEYSTORE_PASSWORD|g" app/src-tauri/gen/android/keystore.properties
+          sed -i "s|\$ANDROID_KEY_ALIAS|$ANDROID_KEY_ALIAS|g" app/src-tauri/gen/android/keystore.properties
+          sed -i "s|\$ANDROID_KEY_PASSWORD|$ANDROID_KEY_PASSWORD|g" app/src-tauri/gen/android/keystore.properties
           
           # Patch build.gradle.kts to add signing configuration
           BUILD_GRADLE="app/src-tauri/gen/android/app/build.gradle.kts"
@@ -104,24 +112,25 @@ jobs:
           # Add import at beginning of file
           sed -i '1i import java.io.FileInputStream' "$BUILD_GRADLE"
           
-          # Add signing config before buildTypes block
-          SIGNING_CONFIG='
-signingConfigs {
-    create("release") {
-        val keystorePropertiesFile = rootProject.file("keystore.properties")
-        val keystoreProperties = java.util.Properties()
-        if (keystorePropertiesFile.exists()) {
-            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-        }
-        keyAlias = keystoreProperties["keyAlias"] as String?
-        keyPassword = keystoreProperties["password"] as String?
-        storeFile = if (keystoreProperties["storeFile"] != null) file(keystoreProperties["storeFile"] as String) else null
-        storePassword = keystoreProperties["storePassword"] as String?
-    }
-}
-'
-          # Insert signing config before buildTypes
-          sed -i "/buildTypes {/i\\$SIGNING_CONFIG" "$BUILD_GRADLE"
+          # Create signing config snippet
+          cat > /tmp/signing_config.txt << 'SIGNCONF'
+          signingConfigs {
+              create("release") {
+                  val keystorePropertiesFile = rootProject.file("keystore.properties")
+                  val keystoreProperties = java.util.Properties()
+                  if (keystorePropertiesFile.exists()) {
+                      keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+                  }
+                  keyAlias = keystoreProperties["keyAlias"] as String?
+                  keyPassword = keystoreProperties["password"] as String?
+                  storeFile = if (keystoreProperties["storeFile"] != null) file(keystoreProperties["storeFile"] as String) else null
+                  storePassword = keystoreProperties["storePassword"] as String?
+              }
+          }
+          SIGNCONF
+          
+          # Insert signing config before buildTypes using awk
+          awk '/buildTypes \{/{while(getline line < "/tmp/signing_config.txt"){print line}} 1' "$BUILD_GRADLE" > "$BUILD_GRADLE.tmp" && mv "$BUILD_GRADLE.tmp" "$BUILD_GRADLE"
           
           # Update release buildType to use signing config
           sed -i 's/getByName("release") {/getByName("release") {\n            signingConfig = signingConfigs.getByName("release")/' "$BUILD_GRADLE"
