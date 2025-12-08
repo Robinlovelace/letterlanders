@@ -21,16 +21,20 @@
         justify-content: center;
         background: rgba(255, 215, 0, 0.1); /* Subtle gold tint */
         color: #fff;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
     .content {
         text-align: center;
         background: linear-gradient(45deg, rgba(255, 215, 0, 0.9), rgba(255, 165, 0, 0.9)); /* Gold/Orange gradient panel */
-        padding: 4rem;
-        border-radius: 2rem;
+        padding: clamp(2rem, 5vw, 4rem);
+        border-radius: 1.5rem;
         backdrop-filter: blur(10px);
         box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
         animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: calc(100vw - 2rem);
+        box-sizing: border-box;
     }
 
     @keyframes popIn {
@@ -39,20 +43,21 @@
     }
 
     h1 {
-        font-size: 4rem;
+        font-size: clamp(2rem, 8vw, 4rem);
         margin-bottom: 1rem;
         text-transform: uppercase;
-        letter-spacing: 5px;
+        letter-spacing: clamp(2px, 1vw, 5px);
+        word-wrap: break-word;
     }
 
     .score {
-        font-size: 2rem;
-        margin-bottom: 3rem;
+        font-size: clamp(1.25rem, 5vw, 2rem);
+        margin-bottom: clamp(1.5rem, 4vw, 3rem);
     }
 
     button {
-        padding: 1rem 3rem;
-        font-size: 1.5rem;
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 4vw, 3rem);
+        font-size: clamp(1rem, 3vw, 1.5rem);
         border: none;
         border-radius: 50px;
         background: white;

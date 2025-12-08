@@ -37,8 +37,18 @@
 {/if}
 
 <style>
-    :global(body) {
+    :global(*) {
+        box-sizing: border-box;
+    }
+
+    :global(html, body) {
         margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    :global(body) {
         font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
         overflow: hidden;
         background-color: #0b0d17;

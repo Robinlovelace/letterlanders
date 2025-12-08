@@ -71,21 +71,26 @@
         justify-content: center;
         background: transparent;
         color: white;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
     .panel {
         background: rgba(16, 30, 60, 0.95);
         border: 2px solid #4488ff;
-        padding: 2rem;
+        padding: clamp(1rem, 4vw, 2rem);
         border-radius: 1rem;
-        width: 400px;
+        width: 100%;
+        max-width: 400px;
         box-shadow: 0 0 20px rgba(68, 136, 255, 0.2);
+        box-sizing: border-box;
     }
 
     h1 {
         margin-top: 0;
         text-align: center;
         color: #ffd700;
+        font-size: clamp(1.5rem, 5vw, 2rem);
     }
 
     .setting-group {
@@ -94,15 +99,18 @@
 
     label {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
-        font-size: 1.2rem;
+        font-size: clamp(0.9rem, 3vw, 1.2rem);
+        gap: 0.5rem;
     }
 
     select, input[type="range"] {
         padding: 0.5rem;
         font-size: 1rem;
         border-radius: 0.5rem;
+        max-width: 100%;
     }
 
     input[type="checkbox"] {

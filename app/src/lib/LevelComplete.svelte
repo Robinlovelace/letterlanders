@@ -28,21 +28,27 @@
         height: 100%;
         display: flex;
         align-items: flex-start; /* Align to top to leave space for rocket */
-        padding-top: 20vh;
+        padding-top: 15vh;
+        padding-left: 1rem;
+        padding-right: 1rem;
         justify-content: center;
         background: rgba(0,0,0,0.3); /* More transparent to see the landing */
         z-index: 90;
         backdrop-filter: blur(2px);
+        box-sizing: border-box;
     }
 
     .content {
         text-align: center;
         color: white;
+        max-width: calc(100vw - 2rem);
+        box-sizing: border-box;
     }
 
     h1 {
-        font-size: 3rem;
+        font-size: clamp(1.75rem, 7vw, 3rem);
         color: #ef4444;
+        word-wrap: break-word;
     }
 
     .passed h1 {
@@ -50,13 +56,13 @@
     }
 
     .score {
-        font-size: 2rem;
-        margin-bottom: 2rem;
+        font-size: clamp(1.25rem, 5vw, 2rem);
+        margin-bottom: clamp(1rem, 3vw, 2rem);
     }
 
     button {
-        padding: 1rem 2rem;
-        font-size: 1.5rem;
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+        font-size: clamp(1rem, 3vw, 1.5rem);
         cursor: pointer;
         background: white;
         border: none;

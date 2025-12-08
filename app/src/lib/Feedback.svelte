@@ -34,20 +34,25 @@
 
     .content {
         background: white;
-        padding: 3rem;
-        border-radius: 2rem;
+        padding: clamp(1.5rem, 5vw, 3rem);
+        border-radius: 1.5rem;
         text-align: center;
         color: #ef4444;
         animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: calc(100vw - 2rem);
+        margin: 0 1rem;
+        box-sizing: border-box;
     }
 
     h1 {
-        font-size: 3rem;
+        font-size: clamp(2rem, 8vw, 3rem);
         margin: 0;
+        word-wrap: break-word;
     }
 
     p {
-        font-size: 1.5rem;
+        font-size: clamp(1rem, 4vw, 1.5rem);
+        word-wrap: break-word;
     }
 
     @keyframes popIn {
