@@ -94,48 +94,49 @@ jobs:
           echo "$ANDROID_KEYSTORE" | base64 -di > app/src-tauri/gen/android/app/release-keystore.jks
           chmod 600 app/src-tauri/gen/android/app/release-keystore.jks
           
-          # Create keystore.properties
-          cat > app/src-tauri/gen/android/keystore.properties << 'PROPS'
+          # Create keystore.properties (no leading whitespace)
+          cat > app/src-tauri/gen/android/keystore.properties << EOF
           storeFile=release-keystore.jks
-          storePassword=$ANDROID_KEYSTORE_PASSWORD
-          keyAlias=$ANDROID_KEY_ALIAS
-          password=$ANDROID_KEY_PASSWORD
-          PROPS
-          # Substitute actual values
-          sed -i "s|\$ANDROID_KEYSTORE_PASSWORD|$ANDROID_KEYSTORE_PASSWORD|g" app/src-tauri/gen/android/keystore.properties
-          sed -i "s|\$ANDROID_KEY_ALIAS|$ANDROID_KEY_ALIAS|g" app/src-tauri/gen/android/keystore.properties
-          sed -i "s|\$ANDROID_KEY_PASSWORD|$ANDROID_KEY_PASSWORD|g" app/src-tauri/gen/android/keystore.properties
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          password=${ANDROID_KEY_PASSWORD}
+          EOF
+          # Remove leading whitespace from properties file
+          sed -i 's/^[[:space:]]*//' app/src-tauri/gen/android/keystore.properties
           
           # Patch build.gradle.kts to add signing configuration
           BUILD_GRADLE="app/src-tauri/gen/android/app/build.gradle.kts"
           
-          # Add import at beginning of file
-          sed -i '1i import java.io.FileInputStream' "$BUILD_GRADLE"
+          # Add imports at beginning of file
+          sed -i '1i import java.io.FileInputStream\nimport java.util.Properties' "$BUILD_GRADLE"
           
-          # Create signing config snippet
+          # Create signing config snippet (no leading whitespace)
           cat > /tmp/signing_config.txt << 'SIGNCONF'
           signingConfigs {
               create("release") {
                   val keystorePropertiesFile = rootProject.file("keystore.properties")
-                  val keystoreProperties = java.util.Properties()
+                  val keystoreProperties = Properties()
                   if (keystorePropertiesFile.exists()) {
                       keystoreProperties.load(FileInputStream(keystorePropertiesFile))
                   }
-                  keyAlias = keystoreProperties["keyAlias"] as String?
-                  keyPassword = keystoreProperties["password"] as String?
-                  storeFile = if (keystoreProperties["storeFile"] != null) file(keystoreProperties["storeFile"] as String) else null
-                  storePassword = keystoreProperties["storePassword"] as String?
+                  keyAlias = keystoreProperties["keyAlias"] as? String
+                  keyPassword = keystoreProperties["password"] as? String
+                  storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
+                  storePassword = keystoreProperties["storePassword"] as? String
               }
           }
           SIGNCONF
+          # Remove leading whitespace from signing config
+          sed -i 's/^[[:space:]]*//' /tmp/signing_config.txt
           
           # Insert signing config before buildTypes using awk
-          awk '/buildTypes \{/{while(getline line < "/tmp/signing_config.txt"){print line}} 1' "$BUILD_GRADLE" > "$BUILD_GRADLE.tmp" && mv "$BUILD_GRADLE.tmp" "$BUILD_GRADLE"
+          awk '/buildTypes \{/{while(getline line < "/tmp/signing_config.txt"){print "    " line}} 1' "$BUILD_GRADLE" > "$BUILD_GRADLE.tmp" && mv "$BUILD_GRADLE.tmp" "$BUILD_GRADLE"
           
           # Update release buildType to use signing config
           sed -i 's/getByName("release") {/getByName("release") {\n            signingConfig = signingConfigs.getByName("release")/' "$BUILD_GRADLE"
           
           echo "Signing configuration applied to build.gradle.kts"
+          cat "$BUILD_GRADLE" | head -60
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
