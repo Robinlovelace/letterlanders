@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  debug-apk:
-    name: Build Debug APK (unsigned)
+  android-build:
+    name: Build Android APKs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,6 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
           # Optimized for CI - only aarch64 + wasm32 for wasm-pack
           targets: aarch64-linux-android,wasm32-unknown-unknown
 
@@ -84,181 +83,82 @@ jobs:
               > tauri.settings.gradle
           fi
 
-      - name: Build Android APK (debug)
-        working-directory: app
-        run: npm run tauri android build -- --target aarch64
-
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: letterlanders-android-apk-debug
-          path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-
-  release-aab:
-    name: Build Release AAB (signed)
-    runs-on: ubuntu-latest
-    needs: debug-apk
-    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          # targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-          # Optimized for CI - only aarch64 + wasm32 for wasm-pack
-          targets: aarch64-linux-android,wasm32-unknown-unknown
-
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          shared-key: android-rust-cache
-          workspaces: |
-            app/src-tauri
-            core
-            wasm
-
-      - name: Install System Dependencies
+      - name: Setup Android Signing
+        if: ${{ secrets.ANDROID_KEYSTORE != '' }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev espeak
-
-      - name: Install wasm-pack
-        run: cargo install wasm-pack
-
-      - name: Build WASM module
-        run: |
-          cd wasm
-          wasm-pack build --target web --out-dir ../app/src/lib/wasm-pkg
-
-      - name: Install Frontend Dependencies
-        working-directory: app
-        run: npm install
-
-      - name: Download Sound Assets
-        working-directory: app
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p static/sounds/prompts
-          gh release download --pattern "*.wav" --dir static/sounds/prompts
-
-      - name: Initialize Android Project
-        working-directory: app
-        run: npm run tauri android init
-
-      - name: Ensure Gradle settings file
-        working-directory: app/src-tauri/gen/android
-        run: |
-          if [ ! -f tauri.settings.gradle ]; then
-            printf "%s\n" \
-              'include(":app")' \
-              'project(":app").projectDir = file("app")' \
-              > tauri.settings.gradle
-          fi
-
-      - name: Restore Android keystore from secrets
-        run: |
-          if [ -z "$ANDROID_KEYSTORE" ]; then
-            echo "No ANDROID_KEYSTORE secret set; skipping signing.";
-            exit 0;
-          fi
-          mkdir -p app/src-tauri/gen/android/app
-          if ! echo "$ANDROID_KEYSTORE" | base64 -di > app/src-tauri/gen/android/app/release-keystore.jks; then
-            echo "ANDROID_KEYSTORE is not valid base64. Re-create it with: base64 -w0 release-keystore.jks";
-            exit 1;
-          fi
+          # Restore keystore from base64-encoded secret
+          echo "$ANDROID_KEYSTORE" | base64 -di > app/src-tauri/gen/android/app/release-keystore.jks
           chmod 600 app/src-tauri/gen/android/app/release-keystore.jks
-        env:
-          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
-
-      - name: Create keystore.properties
-        run: |
-          if [ -z "$ANDROID_KEYSTORE" ]; then
-            echo "No ANDROID_KEYSTORE secret set; skipping signing config.";
-            exit 0;
-          fi
-          printf '%s\n' \
-            "storeFile=release-keystore.jks" \
-            "storePassword=$ANDROID_KEYSTORE_PASSWORD" \
-            "keyAlias=$ANDROID_KEY_ALIAS" \
-            "keyPassword=$ANDROID_KEY_PASSWORD" \
-            > app/src-tauri/gen/android/keystore.properties
-          # Copy to app module directory as well to be safe
-          cp app/src-tauri/gen/android/keystore.properties app/src-tauri/gen/android/app/keystore.properties
+          
+          # Create keystore.properties
+          cat > app/src-tauri/gen/android/keystore.properties << EOF
+          storeFile=release-keystore.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          password=$ANDROID_KEY_PASSWORD
+          EOF
+          
+          # Patch build.gradle.kts to add signing configuration
+          BUILD_GRADLE="app/src-tauri/gen/android/app/build.gradle.kts"
+          
+          # Add import at beginning of file
+          sed -i '1i import java.io.FileInputStream' "$BUILD_GRADLE"
+          
+          # Add signing config before buildTypes block
+          SIGNING_CONFIG='
+signingConfigs {
+    create("release") {
+        val keystorePropertiesFile = rootProject.file("keystore.properties")
+        val keystoreProperties = java.util.Properties()
+        if (keystorePropertiesFile.exists()) {
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        }
+        keyAlias = keystoreProperties["keyAlias"] as String?
+        keyPassword = keystoreProperties["password"] as String?
+        storeFile = if (keystoreProperties["storeFile"] != null) file(keystoreProperties["storeFile"] as String) else null
+        storePassword = keystoreProperties["storePassword"] as String?
+    }
+}
+'
+          # Insert signing config before buildTypes
+          sed -i "/buildTypes {/i\\$SIGNING_CONFIG" "$BUILD_GRADLE"
+          
+          # Update release buildType to use signing config
+          sed -i 's/getByName("release") {/getByName("release") {\n            signingConfig = signingConfigs.getByName("release")/' "$BUILD_GRADLE"
+          
+          echo "Signing configuration applied to build.gradle.kts"
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Build Release APK (signed)
+      - name: Build Release APK
         working-directory: app
-        env:
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: npm run tauri android build -- --apk true --target aarch64
 
-      - name: Rename APKs for clarity
+      - name: List APKs
         working-directory: app/src-tauri/gen/android/app/build/outputs/apk
         run: |
-          # Rename release APKs to include 'signed' in name for clarity
-          for f in $(find . -name "*-release.apk" ! -name "*-unsigned.apk"); do
-            newname=$(echo "$f" | sed 's/-release\.apk/-release-signed.apk/')
-            mv "$f" "$newname" 2>/dev/null || true
-          done
-          # List all APKs found
           echo "APKs found:"
-          find . -name "*.apk"
+          find . -name "*.apk" -exec ls -la {} \;
 
-      - name: Upload Release Artifacts
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-apks
+          name: letterlanders-android-apks
           path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
 
       - name: Upload APKs to Latest Release
+        if: github.ref == 'refs/heads/main'
         working-directory: app/src-tauri/gen/android/app/build/outputs/apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Upload both signed and unsigned
-          SIGNED_APK=$(find . -name "*signed.apk" | head -n 1)
-          UNSIGNED_APK=$(find . -name "*-unsigned.apk" | head -n 1)
-          
           TAG_NAME=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           
-          if [ -f "$SIGNED_APK" ]; then
-             echo "Uploading Signed APK: $SIGNED_APK"
-             gh release upload --clobber "$TAG_NAME" "$SIGNED_APK"
-          else
-             echo "WARNING: No signed APK found."
-          fi
-          
-          if [ -f "$UNSIGNED_APK" ]; then
-             echo "Uploading Unsigned APK: $UNSIGNED_APK"
-             gh release upload --clobber "$TAG_NAME" "$UNSIGNED_APK"
-          else
-              echo "No unsigned APK found."
-          fi
-
-      # Optional: Deploy to Google Play (internal track)
-      # - name: Deploy to Google Play
-      #   uses: r0adkll/upload-google-play@v1
-      #   with:
-      #     serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-      #     packageName: com.example.yourapp  # <-- set your app id
-      #     releaseFiles: app/src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
+          # Upload all APKs found
+          for apk in $(find . -name "*.apk"); do
+            echo "Uploading $apk to release $TAG_NAME..."
+            gh release upload --clobber "$TAG_NAME" "$apk" || echo "Failed to upload $apk"
+          done
