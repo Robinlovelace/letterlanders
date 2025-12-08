@@ -39,10 +39,13 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           shared-key: android-rust-cache
+          # Include root target/ for Android builds and workspace crates
           workspaces: |
-            app/src-tauri
-            core
-            wasm
+            . -> target
+            app/src-tauri -> target
+            core -> target
+            wasm -> target
+          cache-on-failure: true
 
       - name: Install System Dependencies
         run: |
