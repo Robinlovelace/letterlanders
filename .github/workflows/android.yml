@@ -110,20 +110,23 @@ jobs:
           # Patch build.gradle.kts to add signing configuration
           BUILD_GRADLE="app/src-tauri/gen/android/app/build.gradle.kts"
           
-          # Create signing config snippet using fully qualified class names to avoid import conflicts
-          # (Tauri's generated build.gradle.kts may already have conflicting imports)
-          # Use printf to avoid YAML indentation being captured in heredoc
+          # Add FileInputStream import (Properties is already imported by Tauri)
+          sed -i '/^import java.util.Properties/a import java.io.FileInputStream' "$BUILD_GRADLE"
+          
+          # Create signing config snippet
+          # Since Properties is already imported, we can use short form
+          # Use explicit lambda parameter to avoid 'it' scope issues
           printf '%s\n' \
             'signingConfigs {' \
             '    create("release") {' \
             '        val keystorePropertiesFile = rootProject.file("keystore.properties")' \
-            '        val keystoreProperties = java.util.Properties()' \
+            '        val keystoreProperties = Properties()' \
             '        if (keystorePropertiesFile.exists()) {' \
-            '            keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))' \
+            '            keystoreProperties.load(FileInputStream(keystorePropertiesFile))' \
             '        }' \
             '        keyAlias = keystoreProperties["keyAlias"] as? String' \
             '        keyPassword = keystoreProperties["password"] as? String' \
-            '        storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }' \
+            '        storeFile = (keystoreProperties["storeFile"] as? String)?.let { storePath -> file(storePath) }' \
             '        storePassword = keystoreProperties["storePassword"] as? String' \
             '    }' \
             '}' > /tmp/signing_config.txt
