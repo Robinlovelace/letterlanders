@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "app",
+  "productName": "LetterLanders",
   "version": "0.1.0",
-  "identifier": "com.robin.app",
+  "identifier": "com.letterlanders.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "app",
+        "title": "LetterLanders",
         "width": 800,
         "height": 600,
         "devtools": true

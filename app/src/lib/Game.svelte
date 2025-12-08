@@ -24,12 +24,12 @@
     <div class="game-container">
         <div class="hud">
             <div class="hud-panel left">
-                <span class="label">ALTITUDE</span>
+                <span class="label">LEVEL</span>
                 <span class="value">{session.current_level}</span>
             </div>
             <div class="hud-panel right">
-                <span class="label">FUEL</span>
-                <span class="value">{session.score}</span>
+                <span class="label">ALTITUDE</span>
+                <span class="value">{Math.round(5000 * (1 - (session.total_questions > 0 ? session.current_question_index / session.total_questions : 0)))}</span>
             </div>
             {#if session.level_time_limit}
                 <div class="hud-panel center warning">
@@ -40,7 +40,11 @@
         </div>
 
         <div class="challenge-area">
-            <Rocket state={rocketState} level={session.current_level} />
+            <Rocket 
+                state={rocketState} 
+                level={session.current_level} 
+                progress={session.total_questions > 0 ? session.current_question_index / session.total_questions : 0}
+            />
         </div>
 
         <div class="options-grid">
@@ -124,6 +128,8 @@
         padding-bottom: 3rem;
         max-width: 800px;
         margin: 0 auto;
+        position: relative;
+        z-index: 20;
     }
 
     .option-card {
