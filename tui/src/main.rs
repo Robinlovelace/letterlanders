@@ -63,7 +63,7 @@ fn run_app(
         let now = Instant::now();
         let dt = now.duration_since(last_tick).as_secs();
         if dt >= 1 {
-            engine.tick(dt);
+            engine.tick(dt as f64);
             last_tick = now;
         }
 
@@ -230,6 +230,11 @@ fn run_app(
                             }
                             _ => {}
                         },
+                        GameStatus::About => {
+                            if let KeyCode::Esc = key.code {
+                                engine.status = GameStatus::Menu;
+                            }
+                        }
                     }
                 }
             }

@@ -62,28 +62,26 @@ impl GameEngine {
     fn setup_level_properties(session: &mut SessionState) {
         match session.current_level {
             1..=3 => session.total_questions = 5,
-            _ => session.total_questions = 1, // Boss level is just 1 question
+            _ => session.total_questions = 1,
         }
     }
 
     fn generate_level_question(session: &mut SessionState) {
         let mut rng = rand::thread_rng();
 
-        // Level Configuration
         let (num_options, time_limit) = match session.current_level {
             1 => (2, None),
             2 => (3, None),
             3 => (5, None),
-            _ => (9, Some(9.0)), // Boss Level: 9 options, 9 seconds!
+            _ => (9, Some(9.0)),
         };
 
         session.level_time_limit = time_limit;
-        session.level_elapsed_time = 0.0; // Reset timer for new question/level
+        session.level_elapsed_time = 0.0;
 
         let pool = session.variant.char_pool();
         let target = *pool.choose(&mut rng).unwrap();
 
-        // Generate distinct options (including target)
         let mut options = vec![target];
         while options.len() < num_options {
             let choice = *pool.choose(&mut rng).unwrap();
@@ -103,15 +101,10 @@ impl GameEngine {
             session.current_question_index += 1;
 
             if session.current_question_index >= session.total_questions {
-                // End of Level Check
-                // Dynamic passing threshold: 80% of total questions, rounded up.
-                // For 5 questions: 0.8 * 5 = 4.0 -> 4
-                // For 1 question: 0.8 * 1 = 0.8 -> 1
                 let threshold = (session.total_questions as f32 * 0.8).ceil() as u32;
                 let passed = session.score >= threshold;
 
                 if passed && session.current_level >= 4 {
-                    // Boss Defeated! Skip intermediate screen.
                     session.total_score += session.score;
                     self.status = GameStatus::SessionComplete {
                         score: session.total_score,

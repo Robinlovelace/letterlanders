@@ -104,8 +104,8 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                 ))];
 
                 if let Some(limit) = session.level_time_limit {
-                    let remaining = limit.saturating_sub(session.level_elapsed_time);
-                    let style = if remaining <= 5 {
+                    let remaining = (limit - session.level_elapsed_time).max(0.0);
+                    let style = if remaining <= 5.0 {
                         Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
                     } else {
                         Style::default()
@@ -240,6 +240,27 @@ pub fn draw(f: &mut Frame, engine: &GameEngine) {
                     .block(Block::default().borders(Borders::ALL).title("Victory"));
                 f.render_widget(p, chunks[1]);
             }
+        }
+        GameStatus::About => {
+            let text = vec![
+                Line::from(Span::styled(
+                    "About LetterLanders",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )),
+                Line::from(""),
+                Line::from("LetterLanders is a cross-platform educational game"),
+                Line::from("designed to teach letter and number recognition."),
+                Line::from(""),
+                Line::from("Inspired by Learn Digits."),
+                Line::from(""),
+                Line::from("Press 'Esc' to return to Menu"),
+            ];
+            let p = Paragraph::new(text)
+                .alignment(Alignment::Center)
+                .block(Block::default().borders(Borders::ALL).title("About"));
+            f.render_widget(p, chunks[1]);
         }
     }
 
