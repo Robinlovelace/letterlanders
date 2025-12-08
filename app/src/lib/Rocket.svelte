@@ -3,7 +3,7 @@
     export let level: number = 1;
 </script>
 
-<div class="rocket-positioner" style="transform: translateY({-(level - 1) * 5}vh)">
+<div class="rocket-positioner" style="transform: translateY({-35 + (level - 1) * 5}vh)">
     <div class="rocket-container {state}">
         <svg viewBox="0 0 100 100" class="rocket" overflow="visible">
             <defs>
