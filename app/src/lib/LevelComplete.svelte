@@ -27,10 +27,12 @@
         width: 100%;
         height: 100%;
         display: flex;
-        align-items: center;
+        align-items: flex-start; /* Align to top to leave space for rocket */
+        padding-top: 20vh;
         justify-content: center;
-        background: rgba(0,0,0,0.85); /* Slightly more transparent */
+        background: rgba(0,0,0,0.3); /* More transparent to see the landing */
         z-index: 90;
+        backdrop-filter: blur(2px);
     }
 
     .content {

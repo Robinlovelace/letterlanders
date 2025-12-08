@@ -5,8 +5,8 @@
 </script>
 
 <div class="scene">
-    <div class="rocket-positioner" style="transform: translateY({-40 + (progress * 75)}vh)">
-        <div class="rocket-container {state}">
+    <div class="rocket-positioner" style="transform: translateY(calc(-40vh + {progress} * (75vh - 75px)))">
+        <div class="rocket-container {state} {progress >= 1 ? 'landed' : ''}">
             <svg viewBox="0 0 100 100" class="rocket" overflow="visible">
                 <defs>
                 <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -20,6 +20,7 @@
             </defs>
     
             <!-- Flames -->
+            {#if progress < 1}
             <g class="flames" transform="translate(0, -2)">
                 <path d="M40 82 Q50 110 60 82" fill="#ff9800" opacity="0.9">
                     <animate attributeName="d" values="M40 82 Q50 105 60 82; M35 82 Q50 125 65 82; M40 82 Q50 105 60 82" dur="0.15s" repeatCount="indefinite" />
@@ -28,6 +29,7 @@
                     <animate attributeName="d" values="M45 82 Q50 92 55 82; M43 82 Q50 105 57 82; M45 82 Q50 92 55 82" dur="0.15s" repeatCount="indefinite" />
                 </path>
             </g>
+            {/if}
     
             <!-- Fins -->
             <!-- Left -->
@@ -118,6 +120,10 @@
     /* Idle Animation */
     .idle .rocket {
         animation: hover 2s ease-in-out infinite;
+    }
+
+    .landed .rocket {
+        animation: none;
     }
 
     @keyframes hover {

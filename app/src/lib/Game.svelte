@@ -14,6 +14,16 @@
         return 'idle';
     });
 
+    let progress = $derived.by(() => {
+        if (typeof status === 'object' && 'LevelComplete' in status) {
+            return 1;
+        }
+        if (session && session.total_questions > 0) {
+            return session.current_question_index / session.total_questions;
+        }
+        return 0;
+    });
+
     // Handle clicks
     function handleOptionClick(option: string) {
         game.submitAnswer(option);
@@ -29,7 +39,7 @@
             </div>
             <div class="hud-panel right">
                 <span class="label">ALTITUDE</span>
-                <span class="value">{Math.round(5000 * (1 - (session.total_questions > 0 ? session.current_question_index / session.total_questions : 0)))}</span>
+                <span class="value">{Math.round(5000 * (1 - progress))}</span>
             </div>
             {#if session.level_time_limit}
                 <div class="hud-panel center warning">
@@ -43,7 +53,7 @@
             <Rocket 
                 state={rocketState} 
                 level={session.current_level} 
-                progress={session.total_questions > 0 ? session.current_question_index / session.total_questions : 0}
+                progress={progress}
             />
         </div>
 

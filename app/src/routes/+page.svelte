@@ -18,19 +18,22 @@
     <Menu />
 {:else if typeof status === "object" && "Settings" in status}
     <Settings />
-{:else if status === "Playing" || (typeof status === "object" && "Feedback" in status)}
-    <Game />
+{:else}
+    {#if status === "Playing" || (typeof status === "object" && ("Feedback" in status || "LevelComplete" in status))}
+        <Game />
+    {/if}
+
     {#if typeof status === "object" && "Feedback" in status}
         <Feedback {...status.Feedback} />
     {/if}
-{:else if typeof status === "object" && "LevelComplete" in status}
-    <LevelComplete {...status.LevelComplete} />
-{:else if typeof status === "object" && "SessionComplete" in status}
-    <Victory />
-{:else}
-    <div class="fallback">
-        <p>Unknown state: {JSON.stringify(status)}</p>
-    </div>
+
+    {#if typeof status === "object" && "LevelComplete" in status}
+        <LevelComplete {...status.LevelComplete} />
+    {/if}
+
+    {#if typeof status === "object" && "SessionComplete" in status}
+        <Victory />
+    {/if}
 {/if}
 
 <style>
@@ -61,15 +64,5 @@
     @keyframes backgroundMove {
         from { background-position: 0 0, 40px 60px, 130px 270px; }
         to { background-position: 550px 550px, 390px 410px, 680px 820px; }
-    }
-    
-    .fallback {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        color: white;
-        background: rgba(0,0,0,0.5);
     }
 </style>
