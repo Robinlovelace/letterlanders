@@ -245,4 +245,8 @@ impl GameEngine {
     pub fn consume_sound(&mut self) -> SoundEvent {
         std::mem::take(&mut self.last_sound)
     }
+
+    pub fn go_to_about(&mut self) {
+        self.status = GameStatus::About;
+    }
 }

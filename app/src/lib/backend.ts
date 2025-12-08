@@ -14,6 +14,7 @@ export interface IBackendAdapter {
     getSettings(): Promise<GameSettings>;
     updateSettings(settings: GameSettings): Promise<FrontendState>;
     goToSettings(): Promise<FrontendState>;
+    goToAbout(): Promise<FrontendState>;
     startNewGame(variant: GameVariant): Promise<FrontendState>;
     submitAnswer(answer: string): Promise<FrontendState>;
     nextLevel(): Promise<FrontendState>;
@@ -61,6 +62,11 @@ class WasmBackend implements IBackendAdapter {
     async goToSettings(): Promise<FrontendState> {
         const engine = await this.ensureInitialized();
         return engine.go_to_settings() as FrontendState;
+    }
+
+    async goToAbout(): Promise<FrontendState> {
+        const engine = await this.ensureInitialized();
+        return engine.go_to_about() as FrontendState;
     }
 
     async startNewGame(variant: GameVariant): Promise<FrontendState> {

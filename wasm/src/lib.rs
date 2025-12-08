@@ -62,6 +62,13 @@ impl WasmGameEngine {
         serde_wasm_bindgen::to_value(&state).unwrap()
     }
 
+    pub fn go_to_about(&self) -> JsValue {
+        let mut engine = self.engine.lock().unwrap();
+        engine.go_to_about();
+        let state = FrontendState::from_engine(&engine);
+        serde_wasm_bindgen::to_value(&state).unwrap()
+    }
+
     pub fn go_to_settings(&self) -> JsValue {
         let mut engine = self.engine.lock().unwrap();
         engine.status = GameStatus::Settings { message: None };

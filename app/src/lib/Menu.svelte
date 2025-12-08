@@ -5,7 +5,7 @@
 <div class="menu">
     <h1>LetterLanders</h1>
     <p class="subtitle">Land Safely on the Moon!</p>
-    
+
     <div class="buttons">
         <button onclick={() => game.startGame("Numbers")}>
             <span class="icon">123</span>
@@ -17,9 +17,14 @@
         </button>
     </div>
 
-    <button class="settings-btn" onclick={() => game.goToSettings()}>
-        Settings
-    </button>
+    <div class="footer-buttons">
+        <button class="text-btn" onclick={() => game.goToAbout()}>
+            About
+        </button>
+        <button class="text-btn" onclick={() => game.goToSettings()}>
+            Settings
+        </button>
+    </div>
 </div>
 
 <style>
@@ -85,13 +90,19 @@
         margin-bottom: 1rem;
     }
 
-    .settings-btn {
+    .footer-buttons {
+        display: flex;
+        gap: 1rem;
         margin-top: 2rem;
-        margin-bottom: 2rem; /* Added for spacing from bottom */
+        margin-bottom: 2rem;
+    }
+
+    .text-btn {
         width: auto;
         padding: 1rem 2rem;
         font-size: 1.2rem;
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.3);
+        flex: 0 0 auto;
     }
 </style>

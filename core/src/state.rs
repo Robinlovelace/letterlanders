@@ -46,6 +46,7 @@ pub enum GameStatus {
     SessionComplete {
         score: u32,
     },
+    About,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

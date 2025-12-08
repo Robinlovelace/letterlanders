@@ -25,7 +25,9 @@ export type GameStatus =
     | "Playing"
     | { Feedback: { success: boolean, message: string } }
     | { LevelComplete: { level: number, score: number, passed: boolean } }
-    | { SessionComplete: { score: number } };
+    | { LevelComplete: { level: number, score: number, passed: boolean } }
+    | { SessionComplete: { score: number } }
+    | "About";
 
 export interface SessionState {
     variant: GameVariant;
@@ -164,6 +166,12 @@ class GameStore {
     async goToSettings() {
         const backend = await this.getBackendOrWait();
         const newState = await backend.goToSettings();
+        this.processState(newState);
+    }
+
+    async goToAbout() {
+        const backend = await this.getBackendOrWait();
+        const newState = await backend.goToAbout();
         this.processState(newState);
     }
 

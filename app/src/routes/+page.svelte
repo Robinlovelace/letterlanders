@@ -7,6 +7,7 @@
     import LevelComplete from "$lib/LevelComplete.svelte";
     import AudioPlayer from "$lib/AudioPlayer.svelte";
     import Settings from "$lib/Settings.svelte";
+    import About from "$lib/About.svelte";
 
     let status = $derived(game.state.status);
     let audioPlayer: ReturnType<typeof AudioPlayer>;
@@ -39,6 +40,8 @@
 
 {#if status === "Menu"}
     <Menu />
+{:else if status === "About"}
+    <About />
 {:else if typeof status === "object" && "Settings" in status}
     <Settings />
 {:else}
