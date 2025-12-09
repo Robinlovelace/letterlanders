@@ -4,6 +4,7 @@
     import Boss from "./Boss.svelte";
     import { fly, scale } from "svelte/transition";
     import { quintOut } from "svelte/easing";
+    import { untrack } from "svelte";
 
     let session = $derived(game.state.session);
     let status = $derived(game.state.status);
@@ -36,25 +37,40 @@
     let showHint = $state(false);
     let idleTimer: number;
 
+    // Derived signal that only changes when the actual question changes
+    let currentQuestionId = $derived(
+        session
+            ? `${session.current_level}-${session.current_question_index}-${session.target}`
+            : "",
+    );
+
     function resetIdleTimer() {
         clearTimeout(idleTimer);
         showHint = false;
-        if (
-            session &&
-            !rocketState.includes("success") &&
-            !rocketState.includes("failure")
-        ) {
-            idleTimer = setTimeout(() => {
-                showHint = true;
-            }, 8000); // 8 seconds idle triggers hint
-        }
+        // logic moved to effect
     }
 
     $effect(() => {
-        // Reset timer when session (question) changes
-        if (session) {
-            resetIdleTimer();
-        }
+        // Explicitly track these dependencies
+        const _id = currentQuestionId;
+        const _state = rocketState;
+
+        untrack(() => {
+            clearTimeout(idleTimer);
+            showHint = false;
+
+            // Only start timer if we have a valid question and not currently succeeding/failing
+            if (
+                _id &&
+                !_state.includes("success") &&
+                !_state.includes("failure")
+            ) {
+                idleTimer = setTimeout(() => {
+                    showHint = true;
+                }, 8000);
+            }
+        });
+
         return () => clearTimeout(idleTimer);
     });
 </script>
