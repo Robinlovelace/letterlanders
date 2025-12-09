@@ -209,7 +209,11 @@ impl GameEngine {
                 session.score += 1;
                 let message = if input.is_ascii_digit() {
                     let num = input.to_digit(10).unwrap_or(0);
-                    let parity = if num.is_multiple_of(2) { "an even" } else { "an odd" };
+                    let parity = if num.is_multiple_of(2) {
+                        "an even"
+                    } else {
+                        "an odd"
+                    };
                     format!("You chose {}, {} number", input, parity)
                 } else if input.is_ascii_alphabetic() {
                     let lower = input.to_ascii_lowercase();
