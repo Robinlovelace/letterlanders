@@ -27,8 +27,36 @@
 
     // Handle clicks
     function handleOptionClick(option: string) {
+        showHint = false;
+        resetIdleTimer();
         game.submitAnswer(option);
     }
+
+    // Idle Hint System (Research: Guidance for 3-6 year olds)
+    let showHint = $state(false);
+    let idleTimer: number;
+
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        showHint = false;
+        if (
+            session &&
+            !rocketState.includes("success") &&
+            !rocketState.includes("failure")
+        ) {
+            idleTimer = setTimeout(() => {
+                showHint = true;
+            }, 8000); // 8 seconds idle triggers hint
+        }
+    }
+
+    $effect(() => {
+        // Reset timer when session (question) changes
+        if (session) {
+            resetIdleTimer();
+        }
+        return () => clearTimeout(idleTimer);
+    });
 </script>
 
 {#if session}
@@ -89,7 +117,10 @@
             {#each session.options as option, i (option + i)}
                 <!-- Keyed by option+index to trigger transition on change -->
                 <button
-                    class="option-card"
+                    class="option-card {showHint &&
+                    option.toLowerCase() === session.target.toLowerCase()
+                        ? 'hint'
+                        : ''}"
                     onclick={() => handleOptionClick(option)}
                     in:fly={{
                         y: 200,
@@ -305,6 +336,28 @@
         transition: all 0.2s;
         text-transform: uppercase;
         letter-spacing: 1px;
+    }
+
+    .hint {
+        animation: hint-pulse 1.5s infinite;
+        border-color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        z-index: 50; /* Ensure it pops out */
+    }
+
+    @keyframes hint-pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
     }
 
     .menu-btn:hover {
