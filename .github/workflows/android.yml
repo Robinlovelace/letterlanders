@@ -145,32 +145,34 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Build Release APK
+      - name: Build Release APK and AAB
         working-directory: app
-        run: npm run tauri android build -- --apk true --target aarch64
+        run: npm run tauri android build -- --apk --bundle --target aarch64
 
-      - name: List APKs
-        working-directory: app/src-tauri/gen/android/app/build/outputs/apk
+      - name: List Artifacts
+        working-directory: app/src-tauri/gen/android/app/build/outputs
         run: |
-          echo "APKs found:"
-          find . -name "*.apk" -exec ls -la {} \;
+          echo "Artifacts found:"
+          find . \( -name "*.apk" -o -name "*.aab" \) -exec ls -la {} \;
 
-      - name: Upload APK Artifacts
+      - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: letterlanders-android-apks
-          path: app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          name: letterlanders-android-artifacts
+          path: |
+            app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
 
-      - name: Upload APKs to Latest Release
+      - name: Upload Artifacts to Latest Release
         if: github.ref == 'refs/heads/main'
-        working-directory: app/src-tauri/gen/android/app/build/outputs/apk
+        working-directory: app/src-tauri/gen/android/app/build/outputs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           
-          # Upload all APKs found
-          for apk in $(find . -name "*.apk"); do
-            echo "Uploading $apk to release $TAG_NAME..."
-            gh release upload --clobber "$TAG_NAME" "$apk" || echo "Failed to upload $apk"
+          # Upload all APKs and AABs found
+          find . \( -name "*.apk" -o -name "*.aab" \) -print0 | while IFS= read -r -d '' file; do
+            echo "Uploading $file to release $TAG_NAME..."
+            gh release upload --clobber "$TAG_NAME" "$file" || echo "Failed to upload $file"
           done
