@@ -1,0 +1,6 @@
+Welcome to LetterLanders v0.1.0!
+
+New in this release:
+- Visual idle hints to help you progress
+- Enhanced animations for better feedback
+- Performance improvements and bug fixes
