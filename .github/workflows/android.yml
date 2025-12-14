@@ -147,7 +147,7 @@ jobs:
 
       - name: Build Release APK and AAB
         working-directory: app
-        run: npm run tauri android build -- --apk --bundle --target aarch64
+        run: npm run tauri android build -- --apk true --aab true --target aarch64
 
       - name: List Artifacts
         working-directory: app/src-tauri/gen/android/app/build/outputs
