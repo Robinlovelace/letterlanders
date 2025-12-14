@@ -20,6 +20,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -28,6 +29,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -39,12 +42,6 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           shared-key: android-rust-cache
-          # Include root target/ for Android builds and workspace crates
-          workspaces: |
-            . -> target
-            app/src-tauri -> target
-            core -> target
-            wasm -> target
           cache-on-failure: true
 
       - name: Install System Dependencies
@@ -157,6 +154,17 @@ jobs:
           echo "Artifacts found:"
           find . \( -name "*.apk" -o -name "*.aab" \) -exec ls -la {} \;
 
+      - name: Prepare Release Metadata
+        run: |
+          mkdir -p app/src-tauri/gen/android/app/build/outputs/release_metadata
+          VERSION=$(jq -r .version app/package.json)
+          echo "v$VERSION" > app/src-tauri/gen/android/app/build/outputs/release_metadata/release_name.txt
+          if [ -f app/RELEASE_NOTES.txt ]; then
+            cp app/RELEASE_NOTES.txt app/src-tauri/gen/android/app/build/outputs/release_metadata/release_notes.txt
+          else
+            echo "No release notes found." > app/src-tauri/gen/android/app/build/outputs/release_metadata/release_notes.txt
+          fi
+
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -164,6 +172,7 @@ jobs:
           path: |
             app/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
             app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
+            app/src-tauri/gen/android/app/build/outputs/release_metadata/*
 
       - name: Upload Artifacts to Latest Release
         if: github.ref == 'refs/heads/main'
